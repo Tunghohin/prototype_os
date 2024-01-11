@@ -11,11 +11,12 @@ use core::arch::global_asm;
 
 global_asm!(include_str!("entry.asm"));
 
-fn stop() {}
+fn shut_down() -> ! {
+    panic!("Shut down!");
+}
 
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
-    mm::heap_allocator::init();
-    stop();
-    loop {}
+    mm::init();
+    shut_down();
 }
