@@ -11,12 +11,12 @@ use core::arch::global_asm;
 
 global_asm!(include_str!("entry.asm"));
 
-fn shut_down() -> ! {
-    panic!("Shut down!");
-}
-
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
     mm::init();
     shut_down();
+}
+
+fn shut_down() -> ! {
+    loop {}
 }
