@@ -5,6 +5,7 @@ extern crate alloc;
 
 mod lang_item;
 mod mm;
+mod sync;
 mod sysconfig;
 
 use core::arch::global_asm;
