@@ -1,4 +1,4 @@
-use {super::address::PhyPageNum, bitflags::*};
+use {crate::mm::address::PhyPageNum, bitflags::*};
 
 bitflags! {
     /// page table entry flags
