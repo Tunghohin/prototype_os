@@ -4,7 +4,13 @@ use core::fmt::Debug;
 pub struct PhyAddr(pub usize);
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug)]
+pub struct PhyPageNum(pub usize);
+
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug)]
 pub struct VirtAddr(pub usize);
+
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug)]
+pub struct VirtPageNum(pub usize);
 
 trait NextStep {
     fn next(&mut self);
