@@ -3,6 +3,7 @@
 
 extern crate alloc;
 
+mod hal;
 mod lang_item;
 mod mm;
 mod sysconfig;
