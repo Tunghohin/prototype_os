@@ -5,3 +5,5 @@ use {crate::mm::address::PhyPageNum, crate::sysconfig::MEMORY_END};
 pub struct FrameTracker {
     pub ppn: PhyPageNum,
 }
+
+impl FrameTracker {}
