@@ -16,6 +16,7 @@ global_asm!(include_str!("entry.asm"));
 pub extern "C" fn rust_main() -> ! {
     mm::init();
     hal::init();
+
     shut_down();
 }
 
