@@ -13,11 +13,7 @@ use core::arch::global_asm;
 
 global_asm!(include_str!("entry.asm"));
 
-#[no_mangle]
-pub extern "C" fn rust_main() -> ! {
-    mm::init();
-    hal::init();
-
+pub fn bootup_logo() {
     print!(
         r"
 __________                __          __                        ________    _________
@@ -28,6 +24,14 @@ __________                __          __                        ________    ____
                                            \/     |__|        \/        \/        \/ 
            "
     );
+}
+
+#[no_mangle]
+pub extern "C" fn rust_main() -> ! {
+    mm::init();
+    hal::init();
+
+    bootup_logo();
 
     shut_down();
 }
