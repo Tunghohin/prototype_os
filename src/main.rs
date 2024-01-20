@@ -3,6 +3,7 @@
 
 extern crate alloc;
 
+mod hal;
 mod lang_item;
 mod mm;
 mod sync;
@@ -15,6 +16,7 @@ global_asm!(include_str!("entry.asm"));
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
     mm::init();
+    hal::init();
 
     shut_down();
 }
