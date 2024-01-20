@@ -96,26 +96,8 @@ impl Heap {
 
         self.free_list[alloc_type].push(ptr.as_ptr() as *mut usize);
 
-        let mut current_ptr = ptr.as_ptr() as usize;
-        let mut current_type = alloc_type;
-        while current_type < MAX_ORDER {
-            let buddy = current_ptr ^ (1 << current_type);
-            match self.free_list[current_type]
-                .iter_mut()
-                .find(|seg| seg.value() as usize == buddy)
-            {
-                Some(seg) => {
-                    seg.pop();
-                    self.free_list[alloc_type].pop();
-                    current_ptr = min(current_ptr, buddy);
-                    current_type += 1;
-                    self.free_list[alloc_type].push(current_ptr as *mut usize);
-                }
-                None => {
-                    break;
-                }
-            };
-        }
+        let current_ptr = ptr.as_ptr();
+        let current_type = alloc_type;
     }
 }
 
