@@ -6,8 +6,10 @@ use {
         alloc::{GlobalAlloc, Layout},
         cmp::{max, min},
         mem::size_of,
+        ops::Deref,
         ptr::NonNull,
     },
+    spin::Mutex,
 };
 
 const MAX_ORDER: usize = 64;
@@ -23,7 +25,7 @@ pub struct Heap {
 }
 
 impl Heap {
-    fn new() -> Self {
+    const fn new() -> Self {
         Heap {
             free_list: [linked_list::LinkedList::new(); MAX_ORDER],
             user: 0,
@@ -87,7 +89,7 @@ impl Heap {
         }
     }
 
-    pub fn dalloc(&mut self, ptr: NonNull<u8>, layout: Layout) {
+    pub fn dealloc(&mut self, ptr: NonNull<u8>, layout: Layout) {
         let size = max(
             layout.size().next_power_of_two(),
             max(layout.align(), size_of::<usize>()),
@@ -100,22 +102,55 @@ impl Heap {
         let mut current_type = alloc_type;
         while current_type < MAX_ORDER {
             let buddy = current_ptr ^ (1 << current_type);
-            match self.free_list[current_type]
+            if let Some(seg) = self.free_list[current_type]
                 .iter_mut()
                 .find(|seg| seg.value() as usize == buddy)
             {
-                Some(seg) => {
-                    seg.pop();
-                    self.free_list[alloc_type].pop();
-                    current_ptr = min(current_ptr, buddy);
-                    current_type += 1;
-                    self.free_list[alloc_type].push(current_ptr as *mut usize);
-                }
-                None => {
-                    break;
-                }
-            };
+                seg.pop();
+                self.free_list[alloc_type].pop();
+                current_ptr = min(current_ptr, buddy);
+                current_type += 1;
+                self.free_list[alloc_type].push(current_ptr as *mut usize);
+            } else {
+                break;
+            }
         }
+    }
+}
+
+pub struct LockedHeap(Mutex<Heap>);
+
+impl LockedHeap {
+    /// Creates an empty heap
+    pub const fn new() -> LockedHeap {
+        LockedHeap(Mutex::new(Heap::new()))
+    }
+
+    /// Creates an empty heap
+    pub const fn empty() -> LockedHeap {
+        LockedHeap(Mutex::new(Heap::new()))
+    }
+}
+
+impl Deref for LockedHeap {
+    type Target = Mutex<Heap>;
+
+    fn deref(&self) -> &Mutex<Heap> {
+        &self.0
+    }
+}
+
+unsafe impl GlobalAlloc for LockedHeap {
+    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        self.0
+            .lock()
+            .alloc(layout)
+            .ok()
+            .map_or(0 as *mut u8, |allocation| allocation.as_ptr())
+    }
+
+    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+        self.0.lock().dealloc(NonNull::new_unchecked(ptr), layout)
     }
 }
 
