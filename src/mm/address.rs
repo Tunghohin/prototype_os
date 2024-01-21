@@ -1,7 +1,10 @@
-//! PhysAddr, VirtAddr, PhysPageNum, VirtPageNum, raw address
-
-use crate::sysconfig::{PAGE_SIZE, PAGE_SIZE_BITS};
-use core::fmt::{self, Debug, Formatter};
+use {
+    crate::{
+        mm::page_table::entry::PageTableEntry,
+        sysconfig::{PAGE_SIZE, PAGE_SIZE_BITS},
+    },
+    core::{fmt::Debug, mem::size_of},
+};
 
 const PA_WIDTH_SV39: usize = 56;
 const VA_WIDTH_SV39: usize = 39;
@@ -10,81 +13,60 @@ const VPN_WIDTH_SV39: usize = VA_WIDTH_SV39 - PAGE_SIZE_BITS;
 
 /// Physical Address
 #[repr(C)]
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug)]
 pub struct PhysAddr(pub usize);
 
 /// Virtual Address
 #[repr(C)]
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug)]
 pub struct VirtAddr(pub usize);
 
 /// Physical Page Number PPN
 #[repr(C)]
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug)]
 pub struct PhysPageNum(pub usize);
 
 /// Virtual Page Number VPN
 #[repr(C)]
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug)]
 pub struct VirtPageNum(pub usize);
-
-/// Debugging
-
-impl Debug for VirtAddr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("VA:{:#x}", self.0))
-    }
-}
-impl Debug for VirtPageNum {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("VPN:{:#x}", self.0))
-    }
-}
-impl Debug for PhysAddr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("PA:{:#x}", self.0))
-    }
-}
-impl Debug for PhysPageNum {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("PPN:{:#x}", self.0))
-    }
-}
-
-/// T: {PhysAddr, VirtAddr, PhysPageNum, VirtPageNum}
-/// T -> usize: T.0
-/// usize -> T: usize.into()
 
 impl From<usize> for PhysAddr {
     fn from(v: usize) -> Self {
         Self(v & ((1 << PA_WIDTH_SV39) - 1))
     }
 }
+
 impl From<usize> for PhysPageNum {
     fn from(v: usize) -> Self {
         Self(v & ((1 << PPN_WIDTH_SV39) - 1))
     }
 }
+
 impl From<usize> for VirtAddr {
     fn from(v: usize) -> Self {
         Self(v & ((1 << VA_WIDTH_SV39) - 1))
     }
 }
+
 impl From<usize> for VirtPageNum {
     fn from(v: usize) -> Self {
         Self(v & ((1 << VPN_WIDTH_SV39) - 1))
     }
 }
+
 impl From<PhysAddr> for usize {
     fn from(v: PhysAddr) -> Self {
         v.0
     }
 }
+
 impl From<PhysPageNum> for usize {
     fn from(v: PhysPageNum) -> Self {
         v.0
     }
 }
+
 impl From<VirtAddr> for usize {
     fn from(v: VirtAddr) -> Self {
         if v.0 >= (1 << (VA_WIDTH_SV39 - 1)) {
@@ -185,6 +167,28 @@ impl PhysAddr {
         unsafe { (self.0 as *mut T).as_mut().unwrap() }
     }
 }
+impl PhysPageNum {
+    /// Get the reference of page table(array of ptes)
+    pub fn get_pte_array(&self) -> &'static mut [PageTableEntry] {
+        let pa: PhysAddr = (*self).into();
+        unsafe {
+            core::slice::from_raw_parts_mut(
+                pa.0 as *mut PageTableEntry,
+                PAGE_SIZE / size_of::<PageTableEntry>(),
+            )
+        }
+    }
+    /// Get the reference of page(array of bytes)
+    pub fn get_bytes_array(&self) -> &'static mut [u8] {
+        let pa: PhysAddr = (*self).into();
+        unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut u8, 4096) }
+    }
+    /// Get the mutable reference of physical address
+    pub fn get_mut<T>(&self) -> &'static mut T {
+        let pa: PhysAddr = (*self).into();
+        pa.get_mut()
+    }
+}
 
 /// iterator for phy/virt page number
 pub trait StepByOne {
@@ -210,6 +214,7 @@ where
     l: T,
     r: T,
 }
+
 impl<T> SimpleRange<T>
 where
     T: StepByOne + Copy + PartialEq + PartialOrd + Debug,
@@ -225,6 +230,7 @@ where
         self.r
     }
 }
+
 impl<T> IntoIterator for SimpleRange<T>
 where
     T: StepByOne + Copy + PartialEq + PartialOrd + Debug,
@@ -235,6 +241,7 @@ where
         SimpleRangeIterator::new(self.l, self.r)
     }
 }
+
 pub struct SimpleRangeIterator<T>
 where
     T: StepByOne + Copy + PartialEq + PartialOrd + Debug,
@@ -242,6 +249,7 @@ where
     current: T,
     end: T,
 }
+
 impl<T> SimpleRangeIterator<T>
 where
     T: StepByOne + Copy + PartialEq + PartialOrd + Debug,
@@ -250,6 +258,7 @@ where
         Self { current: l, end: r }
     }
 }
+
 impl<T> Iterator for SimpleRangeIterator<T>
 where
     T: StepByOne + Copy + PartialEq + PartialOrd + Debug,
@@ -265,4 +274,5 @@ where
         }
     }
 }
+
 pub type VPNRange = SimpleRange<VirtPageNum>;

@@ -9,13 +9,12 @@ pub struct FrameTracker {
     pub ppn: PhysPageNum,
 }
 
-impl FrameTracker {}
-
 trait FrameAllocator {
     fn new(start_ppn: PhysPageNum, end_ppn: PhysPageNum) -> Self;
     fn alloc(&mut self) -> Option<PhysPageNum>;
     fn dealloc(&mut self, ppn: PhysPageNum);
 }
+type FrameAllocatorImpl = StackFrameAllocator;
 
 pub struct StackFrameAllocator {
     current: usize,
