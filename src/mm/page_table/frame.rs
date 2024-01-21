@@ -1,7 +1,6 @@
-use {
-    crate::{mm::address::PhysPageNum, sysconfig::MEMORY_END},
-    alloc::vec::Vec,
-};
+use crate::mm::address::PhysPageNum;
+use crate::sysconfig::MEMORY_END;
+use alloc::vec::Vec;
 
 #[derive(Debug)]
 /// tracking the allocation and deallocation of a page frame

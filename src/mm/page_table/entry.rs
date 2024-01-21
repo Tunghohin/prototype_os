@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
-use {crate::mm::address::PhysPageNum, bitflags::*};
+use crate::mm::address::PhysPageNum;
+use bitflags::*;
 
 bitflags! {
     /// page table entry flags
