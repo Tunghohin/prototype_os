@@ -1,16 +1,12 @@
 #![allow(dead_code)]
 
-use {
-    crate::mm::linked_list,
-    core::{
-        alloc::{GlobalAlloc, Layout},
-        cmp::{max, min},
-        mem::size_of,
-        ops::Deref,
-        ptr::NonNull,
-    },
-    spin::Mutex,
-};
+use crate::mm::linked_list;
+use core::alloc::{GlobalAlloc, Layout};
+use core::cmp::{max, min};
+use core::mem::size_of;
+use core::ops::Deref;
+use core::ptr::NonNull;
+use spin::Mutex;
 
 const MAX_ORDER: usize = 64;
 

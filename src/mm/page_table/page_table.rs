@@ -1,10 +1,7 @@
-use {
-    crate::mm::{
-        address::PhysPageNum,
-        page_table::{entry::PageTableEntry, frame::FrameTracker},
-    },
-    alloc::vec::Vec,
-};
+use crate::mm::address::PhysPageNum;
+use crate::mm::page_table::entry::PageTableEntry;
+use crate::mm::page_table::frame::FrameTracker;
+use alloc::vec::Vec;
 
 /// page table structure
 struct PageTable {

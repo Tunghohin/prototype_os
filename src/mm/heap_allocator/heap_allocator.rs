@@ -1,4 +1,5 @@
-use crate::{mm::buddy_system::LockedHeap, sysconfig::KERNEL_HEAP_SIZE};
+use crate::mm::buddy_system::LockedHeap;
+use crate::sysconfig::KERNEL_HEAP_SIZE;
 
 #[global_allocator]
 static HEAP_ALLOCATOR: LockedHeap = LockedHeap::empty();

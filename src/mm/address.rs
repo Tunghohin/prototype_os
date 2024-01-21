@@ -1,10 +1,7 @@
-use {
-    crate::{
-        mm::page_table::entry::PageTableEntry,
-        sysconfig::{PAGE_SIZE, PAGE_SIZE_BITS},
-    },
-    core::{fmt::Debug, mem::size_of},
-};
+use crate::mm::page_table::entry::PageTableEntry;
+use crate::sysconfig::{PAGE_SIZE, PAGE_SIZE_BITS};
+use core::fmt::Debug;
+use core::mem::size_of;
 
 const PA_WIDTH_SV39: usize = 56;
 const VA_WIDTH_SV39: usize = 39;
