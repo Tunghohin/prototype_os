@@ -1,3 +1,3 @@
-mod entry;
-mod frame;
-mod page_table;
+pub mod entry;
+pub mod frame;
+pub mod page_table;

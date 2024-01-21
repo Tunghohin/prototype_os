@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use {crate::mm::address::PhyPageNum, bitflags::*};
+use {crate::mm::address::PhysPageNum, bitflags::*};
 
 bitflags! {
     /// page table entry flags
@@ -33,7 +33,7 @@ pub struct PageTableEntry {
 
 impl PageTableEntry {
     /// create a new pagetable entry
-    pub fn new(ppn: PhyPageNum, flags: PTEFlags) -> Self {
+    pub fn new(ppn: PhysPageNum, flags: PTEFlags) -> Self {
         PageTableEntry {
             bits: ppn.0 << 10 | flags.bits as usize,
         }
