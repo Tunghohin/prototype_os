@@ -11,7 +11,7 @@ use spin::Mutex;
 const MAX_ORDER: usize = 64;
 
 pub struct Heap {
-    // buddy system with max order of 32
+    // buddy system with max order of MAX_ORDER
     free_list: [linked_list::LinkedList; MAX_ORDER],
 
     // statistics

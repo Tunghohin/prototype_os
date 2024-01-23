@@ -1,6 +1,20 @@
-use crate::mm::address::PhysPageNum;
+use crate::mm::address::{PhysAddr, PhysPageNum};
+use crate::sync::upsafecell::UPSafeCell;
 use crate::sysconfig::MEMORY_END;
 use alloc::vec::Vec;
+use lazy_static::*;
+
+lazy_static! {
+    pub static ref GLOBAL_FRAME_ALLOCATOR: UPSafeCell<FrameAllocatorImpl> =
+        unsafe { UPSafeCell::new(FrameAllocatorImpl::new()) };
+}
+trait FrameAllocator {
+    fn new() -> Self;
+    fn init(&mut self, start_ppn: PhysPageNum, end_ppn: PhysPageNum);
+    fn alloc(&mut self) -> Option<PhysPageNum>;
+    fn dealloc(&mut self, ppn: PhysPageNum);
+}
+type FrameAllocatorImpl = StackFrameAllocator;
 
 #[derive(Debug)]
 /// tracking the allocation and deallocation of a page frame
@@ -8,12 +22,13 @@ pub struct FrameTracker {
     pub ppn: PhysPageNum,
 }
 
-trait FrameAllocator {
-    fn new(start_ppn: PhysPageNum, end_ppn: PhysPageNum) -> Self;
-    fn alloc(&mut self) -> Option<PhysPageNum>;
-    fn dealloc(&mut self, ppn: PhysPageNum);
+impl FrameTracker {
+    fn new(ppn: PhysPageNum) -> Self {
+        let bytes_array = ppn.get_bytes_array();
+        bytes_array.fill(0);
+        FrameTracker { ppn }
+    }
 }
-type FrameAllocatorImpl = StackFrameAllocator;
 
 pub struct StackFrameAllocator {
     current: usize,
@@ -22,10 +37,10 @@ pub struct StackFrameAllocator {
 }
 
 impl FrameAllocator for StackFrameAllocator {
-    fn new(start_ppn: PhysPageNum, end_ppn: PhysPageNum) -> Self {
+    fn new() -> Self {
         StackFrameAllocator {
-            current: start_ppn.0,
-            end: end_ppn.0,
+            current: 0,
+            end: 0,
             recycled: Vec::new(),
         }
     }
@@ -53,4 +68,31 @@ impl FrameAllocator for StackFrameAllocator {
             self.recycled.push(ppn.0);
         }
     }
+
+    fn init(&mut self, start_ppn: PhysPageNum, end_ppn: PhysPageNum) {
+        self.current = start_ppn.0;
+        self.end = end_ppn.0;
+    }
+}
+
+pub fn frame_allocator_init() {
+    extern "C" {
+        fn ekernel();
+    }
+    let start_pa: PhysAddr = (ekernel as usize).into();
+    let end_pa: PhysAddr = MEMORY_END.into();
+    GLOBAL_FRAME_ALLOCATOR
+        .exclusive_access()
+        .init(start_pa.ceil(), end_pa.floor());
+}
+
+pub fn frame_alloc() -> Option<FrameTracker> {
+    GLOBAL_FRAME_ALLOCATOR
+        .exclusive_access()
+        .alloc()
+        .map(FrameTracker::new)
+}
+
+pub fn frame_dealloc(ppn: PhysPageNum) {
+    GLOBAL_FRAME_ALLOCATOR.exclusive_access().dealloc(ppn)
 }

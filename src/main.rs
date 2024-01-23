@@ -4,7 +4,7 @@
 extern crate alloc;
 
 mod hal;
-mod lang_item;
+mod lang_items;
 mod mm;
 mod sync;
 mod sysconfig;

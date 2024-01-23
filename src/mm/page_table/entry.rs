@@ -1,7 +1,10 @@
 #![allow(dead_code)]
 
-use crate::mm::address::PhysPageNum;
+use crate::mm::address::{PhysPageNum, PPN_WIDTH_SV39};
 use bitflags::*;
+
+pub const PTEIDX_MASK_SV39: usize = 0x01ff;
+pub const PTEIDX_OFFSET_SV39: usize = 12;
 
 bitflags! {
     /// page table entry flags
@@ -70,5 +73,9 @@ impl PageTableEntry {
     /// dirty
     pub fn is_dirty(&self) -> bool {
         (self.bits & PTEFlags::D.bits as usize) != 0
+    }
+
+    pub fn get_ppn(&self) -> PhysPageNum {
+        PhysPageNum((self.bits >> 10) & PPN_WIDTH_SV39)
     }
 }
