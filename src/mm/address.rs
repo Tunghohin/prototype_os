@@ -3,10 +3,10 @@ use crate::sysconfig::{PAGE_SIZE, PAGE_SIZE_BITS};
 use core::fmt::Debug;
 use core::mem::size_of;
 
-const PA_WIDTH_SV39: usize = 56;
-const VA_WIDTH_SV39: usize = 39;
-const PPN_WIDTH_SV39: usize = PA_WIDTH_SV39 - PAGE_SIZE_BITS;
-const VPN_WIDTH_SV39: usize = VA_WIDTH_SV39 - PAGE_SIZE_BITS;
+pub const PA_WIDTH_SV39: usize = 56;
+pub const VA_WIDTH_SV39: usize = 39;
+pub const PPN_WIDTH_SV39: usize = PA_WIDTH_SV39 - PAGE_SIZE_BITS;
+pub const VPN_WIDTH_SV39: usize = VA_WIDTH_SV39 - PAGE_SIZE_BITS;
 
 /// Physical Address
 #[repr(C)]
@@ -73,6 +73,7 @@ impl From<VirtAddr> for usize {
         }
     }
 }
+
 impl From<VirtPageNum> for usize {
     fn from(v: VirtPageNum) -> Self {
         v.0
@@ -100,17 +101,20 @@ impl VirtAddr {
         self.page_offset() == 0
     }
 }
+
 impl From<VirtAddr> for VirtPageNum {
     fn from(v: VirtAddr) -> Self {
         assert_eq!(v.page_offset(), 0);
         v.floor()
     }
 }
+
 impl From<VirtPageNum> for VirtAddr {
     fn from(v: VirtPageNum) -> Self {
         Self(v.0 << PAGE_SIZE_BITS)
     }
 }
+
 impl PhysAddr {
     /// Get the (floor) physical page number
     pub fn floor(&self) -> PhysPageNum {
@@ -129,28 +133,17 @@ impl PhysAddr {
         self.page_offset() == 0
     }
 }
+
 impl From<PhysAddr> for PhysPageNum {
     fn from(v: PhysAddr) -> Self {
         assert_eq!(v.page_offset(), 0);
         v.floor()
     }
 }
+
 impl From<PhysPageNum> for PhysAddr {
     fn from(v: PhysPageNum) -> Self {
         Self(v.0 << PAGE_SIZE_BITS)
-    }
-}
-
-impl VirtPageNum {
-    /// Get the indexes of the page table entry
-    pub fn indexes(&self) -> [usize; 3] {
-        let mut vpn = self.0;
-        let mut idx = [0usize; 3];
-        for i in (0..3).rev() {
-            idx[i] = vpn & 511;
-            vpn >>= 9;
-        }
-        idx
     }
 }
 
@@ -164,6 +157,7 @@ impl PhysAddr {
         unsafe { (self.0 as *mut T).as_mut().unwrap() }
     }
 }
+
 impl PhysPageNum {
     /// Get the reference of page table(array of ptes)
     pub fn get_pte_array(&self) -> &'static mut [PageTableEntry] {
@@ -192,11 +186,13 @@ pub trait StepByOne {
     /// step by one element(page number)
     fn step(&mut self);
 }
+
 impl StepByOne for VirtPageNum {
     fn step(&mut self) {
         self.0 += 1;
     }
 }
+
 impl StepByOne for PhysPageNum {
     fn step(&mut self) {
         self.0 += 1;
