@@ -1,4 +1,4 @@
-use crate::mm::address::{VPNRange, VirtAddr, VirtPageNum};
+use crate::hal::{VPNRange, VirtAddr, VirtPageNum};
 use crate::mm::page_table::frame::FrameTracker;
 use crate::mm::page_table::PageTable;
 use alloc::collections::BTreeMap;

@@ -1,4 +1,4 @@
-use crate::mm::address::{PhysPageNum, VirtPageNum};
+use crate::hal::{PhysPageNum, VirtPageNum};
 use crate::mm::page_table::entry::{PageTableEntry, PTEIDX_MASK_SV39, PTEIDX_OFFSET_SV39};
 use crate::mm::page_table::frame::{frame_alloc, FrameTracker};
 use alloc::vec;
@@ -72,6 +72,6 @@ impl PageTable {
         let pte = self
             .find_pte(vpn)
             .expect("Unmap failed! Page table entry not found.");
-        *pte = PageTableEntry::new(PhysPageNum(0), PTEFlags::from_bits(0).unwrap());
+        *pte = PageTableEntry::new(0.into(), PTEFlags::from_bits(0).unwrap());
     }
 }

@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
-use crate::mm::address::{PhysPageNum, PPN_WIDTH_SV39};
+use crate::hal::riscv::address::PPN_WIDTH_SV39;
+use crate::hal::PhysPageNum;
 use bitflags::*;
 
 pub const PTEIDX_MASK_SV39: usize = 0x01ff;
@@ -76,6 +77,6 @@ impl PageTableEntry {
     }
 
     pub fn get_ppn(&self) -> PhysPageNum {
-        PhysPageNum((self.bits >> 10) & PPN_WIDTH_SV39)
+        ((self.bits >> 10) & PPN_WIDTH_SV39).into()
     }
 }

@@ -1,4 +1,3 @@
-pub mod address;
 pub mod buddy_system;
 pub mod heap_allocator;
 pub mod linked_list;
