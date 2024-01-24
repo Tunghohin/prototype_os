@@ -1,18 +1,10 @@
 pub mod generic_address;
+pub mod generic_paging;
 pub mod riscv;
 
+use crate::hal::generic_address::AddressMetaData;
+use crate::hal::generic_paging::PagingMetaData;
 use crate::hal::riscv::*;
-
-pub trait AddressMetaData {
-    const PA_WIDTH: usize;
-    const VA_WIDTH: usize;
-    const PPN_WIDTH: usize;
-    const VPN_WIDTH: usize;
-}
-
-pub trait PagingMetaData {
-    const LEVEL: usize;
-}
 
 pub trait ArchMetaData: AddressMetaData + PagingMetaData + Sized {}
 

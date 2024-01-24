@@ -5,9 +5,11 @@ pub mod paging;
 pub mod sbi;
 pub mod trap;
 
+use crate::hal::generic_address::AddressMetaData;
 use crate::hal::generic_address::SimpleRange;
+use crate::hal::generic_paging::PagingMetaData;
 use crate::hal::riscv::address::{PhysAddrSV39, PhysPageNumSV39, VirtAddrSV39, VirtPageNumSV39};
-use crate::hal::{AddressMetaData, ArchMetaData, GenericArch, PagingMetaData};
+use crate::hal::{ArchMetaData, GenericArch};
 use crate::sysconfig::PAGE_SIZE_BITS;
 
 /// sv39 specific

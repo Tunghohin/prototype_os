@@ -1,5 +1,12 @@
 use core::fmt::Debug;
 
+pub trait AddressMetaData {
+    const PA_WIDTH: usize;
+    const VA_WIDTH: usize;
+    const PPN_WIDTH: usize;
+    const VPN_WIDTH: usize;
+}
+
 /// iterator for phy/virt page number
 pub trait StepByOne {
     /// step by one element(page number)
