@@ -1,7 +1,5 @@
-pub mod console;
-pub mod sbi;
-pub mod trap;
+pub mod riscv;
 
 pub fn init() {
-    trap::init();
+    riscv::init();
 }
