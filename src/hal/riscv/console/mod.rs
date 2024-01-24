@@ -1,5 +1,5 @@
 //! SBI console driver, for text output
-use crate::hal::sbi::console_putchar;
+use crate::hal::riscv::sbi::console_putchar;
 use core::fmt::{self, Write};
 
 struct Stdout;
@@ -21,7 +21,7 @@ pub fn print(args: fmt::Arguments) {
 #[macro_export]
 macro_rules! print {
     ($fmt: literal $(, $($arg: tt)+)?) => {
-        $crate::hal::console::print(format_args!($fmt $(, $($arg)+)?))
+        $crate::hal::riscv::console::print(format_args!($fmt $(, $($arg)+)?))
     }
 }
 
@@ -29,6 +29,6 @@ macro_rules! print {
 #[macro_export]
 macro_rules! println {
     ($fmt: literal $(, $($arg: tt)+)?) => {
-        $crate::hal::console::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?))
+        $crate::hal::riscv::console::print(format_args!(concat!($fmt, "\n") $(, $($arg)+)?))
     }
 }

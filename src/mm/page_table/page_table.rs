@@ -7,14 +7,14 @@ use alloc::vec::Vec;
 use super::entry::PTEFlags;
 
 /// page table structure
-struct PageTable {
+pub struct PageTable {
     root_ppn: PhysPageNum,
     frames: Vec<FrameTracker>,
 }
 
 impl PageTable {
     /// Create a PageTable and alloc a frame, pointing root_ppn to the PhysPageNum of the frame
-    fn new() -> Self {
+    pub fn new() -> Self {
         let root_frame = frame_alloc().unwrap();
         PageTable {
             root_ppn: root_frame.ppn,
@@ -38,6 +38,8 @@ impl PageTable {
             }
             ppn = entry.get_ppn();
         }
+
+        // not supposed to get here
         None
     }
 
@@ -56,5 +58,20 @@ impl PageTable {
             ppn = entry.get_ppn();
         }
         None
+    }
+
+    /// Map a VirtPageNum to a PhysPageNum
+    fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
+        let pte = self.find_pte_or_create(vpn).expect("Map failed!");
+        assert!(!pte.is_valid(), "{:?} is mapped before!", vpn);
+        *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
+    }
+
+    /// Unmap a VirtPageNum
+    fn unmap(&mut self, vpn: VirtPageNum) {
+        let pte = self
+            .find_pte(vpn)
+            .expect("Unmap failed! Page table entry not found.");
+        *pte = PageTableEntry::new(PhysPageNum(0), PTEFlags::from_bits(0).unwrap());
     }
 }
