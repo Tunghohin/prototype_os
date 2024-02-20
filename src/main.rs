@@ -8,6 +8,7 @@ mod lang_items;
 mod mm;
 mod sync;
 mod sysconfig;
+mod tools;
 
 use core::arch::global_asm;
 
@@ -37,5 +38,5 @@ pub extern "C" fn rust_main() -> ! {
 }
 
 fn shut_down() -> ! {
-    loop {}
+    panic!("fff");
 }

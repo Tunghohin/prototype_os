@@ -1,6 +1,6 @@
-use crate::hal::generic_address::StepByOne;
 use crate::mm::page_table::entry::PageTableEntry;
 use crate::sysconfig::{PAGE_SIZE, PAGE_SIZE_BITS};
+use crate::tools::range::StepByOne;
 use core::fmt::Debug;
 use core::mem::size_of;
 

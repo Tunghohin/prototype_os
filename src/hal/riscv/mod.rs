@@ -6,7 +6,6 @@ pub mod sbi;
 pub mod trap;
 
 use crate::hal::generic_address::AddressMetaData;
-use crate::hal::generic_address::SimpleRange;
 use crate::hal::generic_paging::PagingMetaData;
 use crate::hal::riscv::address::{PhysAddrSV39, PhysPageNumSV39, VirtAddrSV39, VirtPageNumSV39};
 use crate::hal::{ArchMetaData, GenericArch};
@@ -29,7 +28,6 @@ impl PagingMetaData for ArchRISCV {
 impl ArchMetaData for ArchRISCV {}
 
 impl GenericArch for ArchRISCV {
-    type VPNRange = SimpleRange<VirtPageNumSV39>;
     type VirtAddr = VirtAddrSV39;
     type VirtPageNum = VirtPageNumSV39;
     type PhysAddr = PhysAddrSV39;
