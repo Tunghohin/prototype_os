@@ -27,16 +27,16 @@ bitflags! {
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 /// pagetable entry
-pub struct PageTableEntry {
-    bits: usize,
+pub struct PageTableEntrySV39 {
+    pub bits: usize,
 }
 
 impl GenericPTEFlag for PTEFlagsSV39 {}
 
-impl GenericPagetableEntry<PTEFlagsSV39> for PageTableEntry {
+impl GenericPagetableEntry<PTEFlagsSV39> for PageTableEntrySV39 {
     /// create a new pagetable entry
     fn new(ppn: PhysPageNumSV39, flags: PTEFlagsSV39) -> Self {
-        PageTableEntry {
+        PageTableEntrySV39 {
             bits: ppn.0 << 10 | flags.bits as usize,
         }
     }

@@ -1,4 +1,4 @@
-use crate::hal::{PhysAddr, PhysPageNum};
+use crate::hal::*;
 use crate::sync::upsafecell::UPSafeCell;
 use crate::sysconfig::MEMORY_END;
 use alloc::vec::Vec;
@@ -24,7 +24,7 @@ pub struct FrameTracker {
 
 impl FrameTracker {
     fn new(ppn: PhysPageNum) -> Self {
-        let bytes_array = ppn.get_bytes_array();
+        let bytes_array = ppn.get_bytes_array_mut();
         bytes_array.fill(0);
         FrameTracker { ppn }
     }
@@ -83,7 +83,7 @@ pub fn frame_allocator_init() {
     let end_pa: PhysAddr = MEMORY_END.into();
     GLOBAL_FRAME_ALLOCATOR
         .exclusive_access()
-        .init(start_pa.ceil(), end_pa.floor());
+        .init(start_pa.pagenum_ceil(), end_pa.pagenum_floor());
 }
 
 pub fn frame_alloc() -> Option<FrameTracker> {

@@ -2,9 +2,10 @@ pub mod generic_address;
 pub mod generic_paging;
 pub mod riscv;
 
-use crate::hal::generic_address::AddressMetaData;
-use crate::hal::generic_paging::PagingMetaData;
-use crate::hal::riscv::*;
+pub use crate::hal::generic_address::*;
+pub use crate::hal::generic_paging::*;
+
+pub use crate::hal::riscv::*;
 
 pub trait ArchMetaData: AddressMetaData + PagingMetaData + Sized {}
 
@@ -13,12 +14,18 @@ pub trait GenericArch: ArchMetaData {
     type VirtPageNum;
     type PhysAddr;
     type PhysPageNum;
+    type PageTableEntry;
+    type PTEFlags;
 }
 
-pub type VirtAddr = <ArchRISCV as GenericArch>::VirtAddr;
-pub type VirtPageNum = <ArchRISCV as GenericArch>::VirtPageNum;
-pub type PhysAddr = <ArchRISCV as GenericArch>::PhysAddr;
-pub type PhysPageNum = <ArchRISCV as GenericArch>::PhysPageNum;
+pub type Arch = ArchRISCV;
+
+pub type VirtAddr = <Arch as GenericArch>::VirtAddr;
+pub type VirtPageNum = <Arch as GenericArch>::VirtPageNum;
+pub type PhysAddr = <Arch as GenericArch>::PhysAddr;
+pub type PhysPageNum = <Arch as GenericArch>::PhysPageNum;
+pub type PageTableEntry = <Arch as GenericArch>::PageTableEntry;
+pub type PTEFlags = <Arch as GenericArch>::PTEFlags;
 
 pub fn init() {
     riscv::init();

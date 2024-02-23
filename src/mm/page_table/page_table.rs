@@ -1,10 +1,8 @@
-use crate::hal::{PhysPageNum, VirtPageNum};
-use crate::mm::page_table::entry::{PageTableEntry, PTEIDX_MASK_SV39, PTEIDX_OFFSET_SV39};
+use crate::hal::*;
+use crate::mm::page_table::entry::{PTEIDX_MASK_SV39, PTEIDX_OFFSET_SV39};
 use crate::mm::page_table::frame::{frame_alloc, FrameTracker};
 use alloc::vec;
 use alloc::vec::Vec;
-
-use super::entry::PTEFlags;
 
 /// page table structure
 pub struct PageTable {
@@ -27,7 +25,7 @@ impl PageTable {
         let mut ppn = self.root_ppn;
         for level in 1..=3 {
             let index = ppn.0 & (PTEIDX_MASK_SV39 << (level * PTEIDX_OFFSET_SV39));
-            let entry = &mut ppn.get_pte_array()[index];
+            let entry = &mut ppn.get_pte_array_mut()[index];
             if level == 3 {
                 return Some(entry);
             }
@@ -48,7 +46,7 @@ impl PageTable {
         let mut ppn = self.root_ppn;
         for level in 1..=3 {
             let index = ppn.0 & (PTEIDX_MASK_SV39 << (level * PTEIDX_OFFSET_SV39));
-            let entry = &mut ppn.get_pte_array()[index];
+            let entry = &mut ppn.get_pte_array_mut()[index];
             if level == 3 {
                 return Some(entry);
             }

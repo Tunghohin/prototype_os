@@ -1,4 +1,4 @@
-use crate::hal::{VirtAddr, VirtPageNum};
+use crate::hal::*;
 use crate::misc::range::SimpleRange;
 use crate::mm::page_table::frame::FrameTracker;
 use crate::mm::page_table::PageTable;
@@ -76,8 +76,8 @@ impl MapSegment {
         map_type: MapType,
         permission: MapPermission,
     ) -> MapSegment {
-        let start_vpn = start_vaddr.floor();
-        let end_vpn = end_vaddr.ceil();
+        let start_vpn = start_vaddr.pagenum_floor();
+        let end_vpn = end_vaddr.pagenum_ceil();
         Self {
             mapping: BTreeMap::new(),
             map_type,
