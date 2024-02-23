@@ -1,7 +1,7 @@
 use crate::hal::{VirtAddr, VirtPageNum};
+use crate::misc::range::SimpleRange;
 use crate::mm::page_table::frame::FrameTracker;
 use crate::mm::page_table::PageTable;
-use crate::tools::range::SimpleRange;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use bitflags::*;

@@ -5,10 +5,10 @@ extern crate alloc;
 
 mod hal;
 mod lang_items;
+mod misc;
 mod mm;
 mod sync;
 mod sysconfig;
-mod tools;
 
 use core::arch::global_asm;
 
