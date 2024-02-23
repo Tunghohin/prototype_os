@@ -1,9 +1,12 @@
-use crate::mm::address::{VPNRange, VirtAddr, VirtPageNum};
+use crate::hal::{VirtAddr, VirtPageNum};
+use crate::misc::range::SimpleRange;
 use crate::mm::page_table::frame::FrameTracker;
 use crate::mm::page_table::PageTable;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use bitflags::*;
+
+type VPNRange = SimpleRange<VirtPageNum>;
 
 extern "C" {
     fn stext();

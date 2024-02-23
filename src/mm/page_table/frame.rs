@@ -1,4 +1,4 @@
-use crate::mm::address::{PhysAddr, PhysPageNum};
+use crate::hal::{PhysAddr, PhysPageNum};
 use crate::sync::upsafecell::UPSafeCell;
 use crate::sysconfig::MEMORY_END;
 use alloc::vec::Vec;
@@ -47,12 +47,12 @@ impl FrameAllocator for StackFrameAllocator {
 
     fn alloc(&mut self) -> Option<PhysPageNum> {
         if let Some(ppn) = self.recycled.pop() {
-            Some(PhysPageNum(ppn))
+            Some(ppn.into())
         } else if self.current == self.end {
             None
         } else {
             self.current += 1;
-            Some(PhysPageNum(self.current - 1))
+            Some((self.current - 1).into())
         }
     }
 

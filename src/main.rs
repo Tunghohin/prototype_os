@@ -5,6 +5,7 @@ extern crate alloc;
 
 mod hal;
 mod lang_items;
+mod misc;
 mod mm;
 mod sync;
 mod sysconfig;
@@ -37,5 +38,5 @@ pub extern "C" fn rust_main() -> ! {
 }
 
 fn shut_down() -> ! {
-    loop {}
+    panic!("fff");
 }
