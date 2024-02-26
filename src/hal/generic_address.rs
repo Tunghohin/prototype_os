@@ -1,4 +1,4 @@
-use crate::hal::{PageTableEntry, PhysAddr, PhysPageNum, VirtAddr, VirtPageNum};
+use crate::hal::*;
 use core::fmt::Debug;
 
 pub trait AddressMetaData {
@@ -60,6 +60,8 @@ pub trait GenericPhysPageNum: GenericPageNum + Into<PhysAddr> {
         let pa: PhysAddr = self.clone().into();
         pa.get_mut()
     }
+    /// Get PTE array index by level
+    fn get_pte_index(&self, level: usize) -> usize;
 }
 
 pub trait GenericVirtPageNum: GenericPageNum + Into<VirtAddr> {}

@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 use crate::hal::*;
-use bitflags::*;
 
 pub const PTEIDX_MASK_SV39: usize = 0x01ff;
 pub const PTEIDX_OFFSET_SV39: usize = 12;

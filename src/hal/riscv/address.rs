@@ -108,6 +108,10 @@ impl GenericPhysPageNum for PhysPageNumSV39 {
         let pa: PhysAddrSV39 = (*self).into();
         unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut u8, 4096) }
     }
+
+    fn get_pte_index(&self, level: usize) -> usize {
+        0
+    }
 }
 
 impl From<usize> for PhysPageNumSV39 {
@@ -167,94 +171,6 @@ impl From<VirtPageNumSV39> for usize {
         v.0
     }
 }
-
-// impl GenericAddress for VirtAddrSV39 {
-//     /// Get the (floor) virtual page number
-//     fn floor(&self) -> VirtPageNumSV39 {
-//         VirtPageNumSV39(self.0 / PAGE_SIZE)
-//     }
-
-//     /// Get the (ceil) virtual page number
-//     fn ceil(&self) -> VirtPageNumSV39 {
-//         VirtPageNumSV39((self.0 - 1 + PAGE_SIZE) / PAGE_SIZE)
-//     }
-
-//     /// Get the page offset of virtual address
-//     fn page_offset(&self) -> usize {
-//         self.0 & (PAGE_SIZE - 1)
-//     }
-
-//     /// Check if the virtual address is aligned by page size
-//     fn aligned(&self) -> bool {
-//         self.page_offset() == 0
-//     }
-// }
-
-// impl From<VirtAddrSV39> for VirtPageNumSV39 {
-//     fn from(v: VirtAddrSV39) -> Self {
-//         assert_eq!(v.page_offset(), 0);
-//         v.floor()
-//     }
-// }
-
-// impl From<VirtPageNumSV39> for VirtAddrSV39 {
-//     fn from(v: VirtPageNumSV39) -> Self {
-//         Self(v.0 << PAGE_SIZE_BITS)
-//     }
-// }
-
-// impl PhysAddrSV39 {
-//     /// Get the (floor) physical page number
-//     pub fn floor(&self) -> PhysPageNumSV39 {
-//         PhysPageNumSV39(self.0 / PAGE_SIZE)
-//     }
-//     /// Get the (ceil) physical page number
-//     pub fn ceil(&self) -> PhysPageNumSV39 {
-//         PhysPageNumSV39((self.0 - 1 + PAGE_SIZE) / PAGE_SIZE)
-//     }
-//     /// Get the page offset of physical address
-//     pub fn page_offset(&self) -> usize {
-//         self.0 & (PAGE_SIZE - 1)
-//     }
-//     /// Check if the physical address is aligned by page size
-//     pub fn aligned(&self) -> bool {
-//         self.page_offset() == 0
-//     }
-// }
-
-// impl PhysAddrSV39 {
-//     /// Get the immutable reference of physical address
-//     pub fn get_ref<T>(&self) -> &'static T {
-//         unsafe { (self.0 as *const T).as_ref().unwrap() }
-//     }
-//     /// Get the mutable reference of physical address
-//     pub fn get_mut<T>(&self) -> &'static mut T {
-//         unsafe { (self.0 as *mut T).as_mut().unwrap() }
-//     }
-// }
-
-// impl PhysPageNumSV39 {
-//     /// Get the reference of page table(array of ptes)
-//     pub fn get_pte_array(&self) -> &'static mut [PageTableEntry] {
-//         let pa: PhysAddrSV39 = (*self).into();
-//         unsafe {
-//             core::slice::from_raw_parts_mut(
-//                 pa.0 as *mut PageTableEntry,
-//                 PAGE_SIZE / size_of::<PageTableEntry>(),
-//             )
-//         }
-//     }
-//     /// Get the reference of page(array of bytes)
-//     pub fn get_bytes_array(&self) -> &'static mut [u8] {
-//         let pa: PhysAddrSV39 = (*self).into();
-//         unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut u8, 4096) }
-//     }
-//     /// Get the mutable reference of physical address
-//     pub fn get_mut<T>(&self) -> &'static mut T {
-//         let pa: PhysAddrSV39 = (*self).into();
-//         pa.get_mut()
-//     }
-// }
 
 impl StepByOne for VirtPageNumSV39 {
     fn step(&mut self) {

@@ -23,10 +23,10 @@ impl PageTable {
     /// Find PageTableEntry by VirtPageNum. if does not exist, create a 4KB frame with 512 PageTableEntry in it
     fn find_pte_or_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let mut ppn = self.root_ppn;
-        for level in 1..=3 {
+        for level in 1..=Arch::LEVEL {
             let index = ppn.0 & (PTEIDX_MASK_SV39 << (level * PTEIDX_OFFSET_SV39));
             let entry = &mut ppn.get_pte_array_mut()[index];
-            if level == 3 {
+            if level == Arch::LEVEL {
                 return Some(entry);
             }
             if !entry.is_valid() {
@@ -44,10 +44,10 @@ impl PageTable {
     /// Find PageTableEntry by VirtPageNum. if does not exist, retuen None
     fn find_pte(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let mut ppn = self.root_ppn;
-        for level in 1..=3 {
+        for level in 1..=Arch::LEVEL {
             let index = ppn.0 & (PTEIDX_MASK_SV39 << (level * PTEIDX_OFFSET_SV39));
             let entry = &mut ppn.get_pte_array_mut()[index];
-            if level == 3 {
+            if level == Arch::LEVEL {
                 return Some(entry);
             }
             if !entry.is_valid() {
