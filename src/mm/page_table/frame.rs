@@ -8,6 +8,7 @@ lazy_static! {
     pub static ref GLOBAL_FRAME_ALLOCATOR: UPSafeCell<FrameAllocatorImpl> =
         unsafe { UPSafeCell::new(FrameAllocatorImpl::new()) };
 }
+
 trait FrameAllocator {
     fn new() -> Self;
     fn init(&mut self, start_ppn: PhysPageNum, end_ppn: PhysPageNum);

@@ -33,9 +33,9 @@ pub trait GenericPhysAddress: GenericAddress {
 }
 
 pub trait GenericVirtAddress: GenericAddress {
-    /// Get PhyPageNum which is floored by page size
+    /// Get VirtPageNum which is floored by page size
     fn pagenum_floor(&self) -> VirtPageNum;
-    /// Get PhyPageNum which is ceiled by page size
+    /// Get VirtPageNum which is ceiled by page size
     fn pagenum_ceil(&self) -> VirtPageNum;
 }
 
@@ -60,8 +60,9 @@ pub trait GenericPhysPageNum: GenericPageNum + Into<PhysAddr> {
         let pa: PhysAddr = self.clone().into();
         pa.get_mut()
     }
-    /// Get PTE array index by level
-    fn get_pte_index(&self, level: usize) -> usize;
 }
 
-pub trait GenericVirtPageNum: GenericPageNum + Into<VirtAddr> {}
+pub trait GenericVirtPageNum: GenericPageNum + Into<VirtAddr> {
+    /// Get page table index by level
+    fn get_pte_index(&self, level: usize) -> usize;
+}

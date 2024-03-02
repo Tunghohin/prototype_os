@@ -1,5 +1,4 @@
 use crate::hal::*;
-use crate::mm::page_table::entry::{PTEIDX_MASK_SV39, PTEIDX_OFFSET_SV39};
 use crate::mm::page_table::frame::{frame_alloc, FrameTracker};
 use alloc::vec;
 use alloc::vec::Vec;
@@ -24,7 +23,7 @@ impl PageTable {
     fn find_pte_or_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let mut ppn = self.root_ppn;
         for level in 1..=Arch::LEVEL {
-            let index = ppn.0 & (PTEIDX_MASK_SV39 << (level * PTEIDX_OFFSET_SV39));
+            let index = vpn.get_pte_index(level);
             let entry = &mut ppn.get_pte_array_mut()[index];
             if level == Arch::LEVEL {
                 return Some(entry);
@@ -45,7 +44,7 @@ impl PageTable {
     fn find_pte(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let mut ppn = self.root_ppn;
         for level in 1..=Arch::LEVEL {
-            let index = ppn.0 & (PTEIDX_MASK_SV39 << (level * PTEIDX_OFFSET_SV39));
+            let index = vpn.get_pte_index(level);
             let entry = &mut ppn.get_pte_array_mut()[index];
             if level == Arch::LEVEL {
                 return Some(entry);

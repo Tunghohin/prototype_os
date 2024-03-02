@@ -1,7 +1,7 @@
 use crate::hal::generic_address::{
     GenericAddress, GenericPageNum, GenericPhysAddress, GenericPhysPageNum, GenericVirtAddress,
 };
-use crate::hal::{PageTableEntry, PhysPageNum};
+use crate::hal::{GenericVirtPageNum, PageTableEntry, PhysPageNum};
 use crate::misc::range::StepByOne;
 use crate::sysconfig::{PAGE_SIZE, PAGE_SIZE_BITS};
 use core::fmt::Debug;
@@ -11,6 +11,9 @@ pub const PA_WIDTH_SV39: usize = 56;
 pub const VA_WIDTH_SV39: usize = 39;
 pub const PPN_WIDTH_SV39: usize = PA_WIDTH_SV39 - PAGE_SIZE_BITS;
 pub const VPN_WIDTH_SV39: usize = VA_WIDTH_SV39 - PAGE_SIZE_BITS;
+
+pub const PTEIDX_MASK_SV39: usize = 0x01ff;
+pub const PTEIDX_OFFSET_SV39: usize = 12;
 
 /// Physical Address
 #[repr(C)]
@@ -108,10 +111,6 @@ impl GenericPhysPageNum for PhysPageNumSV39 {
         let pa: PhysAddrSV39 = (*self).into();
         unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut u8, 4096) }
     }
-
-    fn get_pte_index(&self, level: usize) -> usize {
-        0
-    }
 }
 
 impl From<usize> for PhysPageNumSV39 {
@@ -144,6 +143,15 @@ impl GenericVirtAddress for VirtAddrSV39 {
     }
 }
 
+impl GenericPageNum for VirtPageNumSV39 {}
+
+impl GenericVirtPageNum for VirtPageNumSV39 {
+    fn get_pte_index(&self, level: usize) -> usize {
+        assert!(level <= 3 && level >= 1);
+        self.0 & (PTEIDX_MASK_SV39 << (level * PTEIDX_OFFSET_SV39))
+    }
+}
+
 impl From<usize> for VirtAddrSV39 {
     fn from(v: usize) -> Self {
         Self(v & ((1 << VA_WIDTH_SV39) - 1))
@@ -169,6 +177,17 @@ impl From<VirtAddrSV39> for usize {
 impl From<VirtPageNumSV39> for usize {
     fn from(v: VirtPageNumSV39) -> Self {
         v.0
+    }
+}
+
+impl From<VirtAddrSV39> for VirtPageNumSV39 {
+    fn from(v: VirtAddrSV39) -> Self {
+        v.pagenum_floor()
+    }
+}
+impl From<VirtPageNumSV39> for VirtAddrSV39 {
+    fn from(v: VirtPageNumSV39) -> Self {
+        Self(v.0 << PAGE_SIZE_BITS)
     }
 }
 
