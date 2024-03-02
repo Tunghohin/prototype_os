@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::mm::linked_list;
+use crate::misc::linked_list;
 use core::alloc::{GlobalAlloc, Layout};
 use core::cmp::{max, min};
 use core::mem::size_of;

@@ -33,4 +33,4 @@ pub type VirtPageNum = <Arch as GenericArch>::VirtPageNum;
 pub type PhysAddr = <Arch as GenericArch>::PhysAddr;
 pub type PhysPageNum = <Arch as GenericArch>::PhysPageNum;
 pub type PageTableEntry = <Arch as GenericArch>::PageTableEntry;
-pub type PTEFlags = <Arch as GenericArch>::PTEFlags;
+pub type PTEFlags = <Arch as GenericArch>::PTEFlags; // Should be implemented by bitflags
