@@ -74,6 +74,6 @@ impl GenericPagetableEntry<PTEFlagsSV39> for PageTableEntrySV39 {
     }
 
     fn get_ppn(&self) -> PhysPageNumSV39 {
-        ((self.bits >> 10) & PPN_WIDTH_SV39).into()
+        ((self.bits >> 10) & ((1 << PPN_WIDTH_SV39) - 1)).into()
     }
 }

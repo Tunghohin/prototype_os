@@ -6,4 +6,5 @@ pub mod page_table;
 pub fn init() {
     heap_allocator::init();
     page_table::init();
+    memory_set::KERNEL_SPACE.exclusive_access().test();
 }

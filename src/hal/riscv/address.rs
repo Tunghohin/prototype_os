@@ -14,6 +14,7 @@ pub const VPN_WIDTH_SV39: usize = VA_WIDTH_SV39 - PAGE_SIZE_BITS;
 
 pub const PTEIDX_MASK_SV39: usize = 0x01ff;
 pub const PTEIDX_OFFSET_SV39: usize = 12;
+pub const PTEIDX_MASK_WIDTH_SV30: usize = 9;
 
 /// Physical Address
 #[repr(C)]
@@ -104,12 +105,12 @@ impl GenericPhysPageNum for PhysPageNumSV39 {
 
     fn get_bytes_array(&self) -> &'static [u8] {
         let pa: PhysAddrSV39 = (*self).into();
-        unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut u8, 4096) }
+        unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut u8, PAGE_SIZE) }
     }
 
     fn get_bytes_array_mut(&self) -> &'static mut [u8] {
         let pa: PhysAddrSV39 = (*self).into();
-        unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut u8, 4096) }
+        unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut u8, PAGE_SIZE) }
     }
 }
 
@@ -148,7 +149,9 @@ impl GenericPageNum for VirtPageNumSV39 {}
 impl GenericVirtPageNum for VirtPageNumSV39 {
     fn get_pte_index(&self, level: usize) -> usize {
         assert!(level <= 3 && level >= 1);
-        self.0 & (PTEIDX_MASK_SV39 << (level * PTEIDX_OFFSET_SV39))
+        self.0
+            & (PTEIDX_MASK_SV39 << ((level - 1) * PTEIDX_MASK_WIDTH_SV30))
+                >> ((level - 1) * PTEIDX_MASK_WIDTH_SV30)
     }
 }
 

@@ -13,6 +13,7 @@ impl PageTable {
     /// Create a PageTable and alloc a frame, pointing root_ppn to the PhysPageNum of the frame
     pub fn new() -> Self {
         let root_frame = frame_alloc().unwrap();
+        log::debug!("root ppn: 0x{:x}", root_frame.ppn.0);
         PageTable {
             root_ppn: root_frame.ppn,
             frames: vec![root_frame],
@@ -22,6 +23,7 @@ impl PageTable {
     /// Find PageTableEntry by VirtPageNum. if does not exist, create a 4KB frame with 512 PageTableEntry in it
     fn find_pte_or_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let mut ppn = self.root_ppn;
+        log::debug!("vpn: {:x}", vpn.0);
         for level in 1..=Arch::LEVEL {
             let index = vpn.get_pte_index(level);
             let entry = &mut ppn.get_pte_array_mut()[index];
@@ -30,6 +32,7 @@ impl PageTable {
             }
             if !entry.is_valid() {
                 let frame = frame_alloc().unwrap();
+                log::debug!("frame{}: {:x}", level, frame.ppn.0);
                 *entry = PageTableEntry::new(frame.ppn, PTEFlags::V);
                 self.frames.push(frame);
             }
@@ -58,9 +61,10 @@ impl PageTable {
     }
 
     /// Map a VirtPageNum to a PhysPageNum
-    fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
+    pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
         let pte = self.find_pte_or_create(vpn).expect("Map failed!");
         assert!(!pte.is_valid(), "{:?} is mapped before!", vpn);
+        log::debug!("{:x}, {:x}", vpn.0, ppn.0);
         *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
     }
 
