@@ -25,6 +25,6 @@ pub trait GenericPagetableEntry<F: GenericPTEFlag> {
     fn is_accessed(&self) -> bool;
     /// dirty
     fn is_dirty(&self) -> bool;
-
+    /// Get PhysPageNum
     fn get_ppn(&self) -> PhysPageNum;
 }

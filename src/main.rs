@@ -9,12 +9,13 @@ mod misc;
 mod mm;
 mod sync;
 mod sysconfig;
+mod task;
 
 use core::arch::global_asm;
 
 global_asm!(include_str!("entry.asm"));
 
-pub fn bootup_logo() {
+fn bootup_logo() {
     print!(
         r"
 __________                __          __                        ________    _________
@@ -27,16 +28,29 @@ __________                __          __                        ________    ____
     );
 }
 
+fn kernel_init() {
+    // clear bss
+    extern "C" {
+        fn sbss();
+        fn ebss();
+    }
+    unsafe {
+        core::slice::from_raw_parts_mut(sbss as usize as *mut u8, ebss as usize - sbss as usize)
+            .fill(0);
+    }
+
+    misc::logger::init();
+    hal::init();
+    mm::init();
+    bootup_logo();
+}
+
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
-    mm::init();
-    hal::init();
-
-    bootup_logo();
-
+    kernel_init();
     shut_down();
 }
 
 fn shut_down() -> ! {
-    panic!("fff");
+    panic!("shut down!");
 }

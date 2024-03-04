@@ -1,10 +1,21 @@
 pub mod generic_address;
+pub mod generic_context;
 pub mod generic_paging;
-pub mod riscv;
+pub mod generic_trap;
 
-use crate::hal::generic_address::AddressMetaData;
-use crate::hal::generic_paging::PagingMetaData;
-use crate::hal::riscv::*;
+pub use crate::hal::generic_address::*;
+pub use crate::hal::generic_paging::*;
+
+pub use crate::hal::riscv::*;
+
+pub mod riscv;
+pub mod x86_64;
+
+pub type Arch = ArchRISCV;
+
+pub fn init() {
+    riscv::init();
+}
 
 pub trait ArchMetaData: AddressMetaData + PagingMetaData + Sized {}
 
@@ -13,13 +24,13 @@ pub trait GenericArch: ArchMetaData {
     type VirtPageNum;
     type PhysAddr;
     type PhysPageNum;
+    type PageTableEntry;
+    type PTEFlags;
 }
 
-pub type VirtAddr = <ArchRISCV as GenericArch>::VirtAddr;
-pub type VirtPageNum = <ArchRISCV as GenericArch>::VirtPageNum;
-pub type PhysAddr = <ArchRISCV as GenericArch>::PhysAddr;
-pub type PhysPageNum = <ArchRISCV as GenericArch>::PhysPageNum;
-
-pub fn init() {
-    riscv::init();
-}
+pub type VirtAddr = <Arch as GenericArch>::VirtAddr;
+pub type VirtPageNum = <Arch as GenericArch>::VirtPageNum;
+pub type PhysAddr = <Arch as GenericArch>::PhysAddr;
+pub type PhysPageNum = <Arch as GenericArch>::PhysPageNum;
+pub type PageTableEntry = <Arch as GenericArch>::PageTableEntry;
+pub type PTEFlags = <Arch as GenericArch>::PTEFlags; // Should be implemented by bitflags
