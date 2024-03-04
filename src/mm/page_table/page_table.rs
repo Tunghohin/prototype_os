@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::hal::*;
 use crate::mm::page_table::frame::{frame_alloc, FrameTracker};
 use alloc::vec;
@@ -5,7 +7,7 @@ use alloc::vec::Vec;
 
 /// page table structure
 pub struct PageTable {
-    root_ppn: PhysPageNum,
+    pub root_ppn: PhysPageNum,
     frames: Vec<FrameTracker>,
 }
 
@@ -23,19 +25,21 @@ impl PageTable {
     /// Find PageTableEntry by VirtPageNum. if does not exist, create a 4KB frame with 512 PageTableEntry in it
     fn find_pte_or_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let mut ppn = self.root_ppn;
-        log::debug!("vpn: {:x}", vpn.0);
-        for level in 1..=Arch::LEVEL {
+        log::debug!("vpn: {:x} {:b}", vpn.0, vpn.0);
+        for level in (0..Arch::LEVEL).rev() {
             let index = vpn.get_pte_index(level);
             let entry = &mut ppn.get_pte_array_mut()[index];
-            if level == Arch::LEVEL {
+            log::debug!("level: {}, index: {}", level, index);
+            if level == 0 {
+                log::debug!("entry: {:x}", entry.get_ppn().0);
                 return Some(entry);
             }
             if !entry.is_valid() {
                 let frame = frame_alloc().unwrap();
-                log::debug!("frame{}: {:x}", level, frame.ppn.0);
                 *entry = PageTableEntry::new(frame.ppn, PTEFlags::V);
                 self.frames.push(frame);
             }
+            log::debug!("entry: {:x}", entry.get_ppn().0);
             ppn = entry.get_ppn();
         }
 
@@ -46,15 +50,20 @@ impl PageTable {
     /// Find PageTableEntry by VirtPageNum. if does not exist, retuen None
     fn find_pte(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let mut ppn = self.root_ppn;
-        for level in 1..=Arch::LEVEL {
+        log::debug!("vpn: {:x} {:b}", vpn.0, vpn.0);
+        for level in (0..Arch::LEVEL).rev() {
             let index = vpn.get_pte_index(level);
             let entry = &mut ppn.get_pte_array_mut()[index];
-            if level == Arch::LEVEL {
+            log::debug!("level: {}, index: {}", level, index);
+            if level == 0 {
+                log::debug!("entry: {:x}", entry.get_ppn().0);
                 return Some(entry);
             }
             if !entry.is_valid() {
+                log::debug!("!entry: {:x}", entry.get_ppn().0);
                 return None;
             }
+            log::debug!("entry: {:x}", entry.get_ppn().0);
             ppn = entry.get_ppn();
         }
         None
@@ -64,8 +73,8 @@ impl PageTable {
     pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
         let pte = self.find_pte_or_create(vpn).expect("Map failed!");
         assert!(!pte.is_valid(), "{:?} is mapped before!", vpn);
-        log::debug!("{:x}, {:x}", vpn.0, ppn.0);
         *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
+        log::debug!("final pte: {:b}", (*pte).bits);
     }
 
     /// Unmap a VirtPageNum

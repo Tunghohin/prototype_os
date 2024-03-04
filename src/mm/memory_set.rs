@@ -82,8 +82,9 @@ impl MemorySet {
         );
     }
 
-    pub fn test(&self) {
-        log::info!("kernel!");
+    /// only run it on kernel space
+    pub fn activate(&self) {
+        activate_virt_mem(self.page_table.root_ppn.into());
     }
 
     pub fn new_kernel() -> MemorySet {
@@ -137,16 +138,16 @@ impl MemorySet {
             ),
             None,
         );
-        // log::info!("mapping physical memory");
-        // memory_set.insert_segment(
-        //     MapSegment::new(
-        //         (ekernel as usize).into(),
-        //         MEMORY_END.into(),
-        //         MapType::Identical,
-        //         MapPermission::R | MapPermission::W,
-        //     ),
-        //     None,
-        // );
+        log::info!("mapping physical memory");
+        memory_set.insert_segment(
+            MapSegment::new(
+                (ekernel as usize).into(),
+                MEMORY_END.into(),
+                MapType::Identical,
+                MapPermission::R | MapPermission::W,
+            ),
+            None,
+        );
 
         memory_set
     }

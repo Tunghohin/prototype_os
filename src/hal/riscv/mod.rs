@@ -41,3 +41,7 @@ impl GenericArch for ArchRISCV {
 pub fn init() {
     trap::init();
 }
+
+pub fn activate_virt_mem(token: usize) {
+    paging::activate_virt_mem(token);
+}

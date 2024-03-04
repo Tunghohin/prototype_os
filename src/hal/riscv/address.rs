@@ -1,7 +1,4 @@
-use crate::hal::generic_address::{
-    GenericAddress, GenericPageNum, GenericPhysAddress, GenericPhysPageNum, GenericVirtAddress,
-};
-use crate::hal::{GenericVirtPageNum, PageTableEntry, PhysPageNum};
+use crate::hal::*;
 use crate::misc::range::StepByOne;
 use crate::sysconfig::{PAGE_SIZE, PAGE_SIZE_BITS};
 use core::fmt::Debug;
@@ -13,7 +10,6 @@ pub const PPN_WIDTH_SV39: usize = PA_WIDTH_SV39 - PAGE_SIZE_BITS;
 pub const VPN_WIDTH_SV39: usize = VA_WIDTH_SV39 - PAGE_SIZE_BITS;
 
 pub const PTEIDX_MASK_SV39: usize = 0x01ff;
-pub const PTEIDX_OFFSET_SV39: usize = 12;
 pub const PTEIDX_MASK_WIDTH_SV30: usize = 9;
 
 /// Physical Address
@@ -148,10 +144,9 @@ impl GenericPageNum for VirtPageNumSV39 {}
 
 impl GenericVirtPageNum for VirtPageNumSV39 {
     fn get_pte_index(&self, level: usize) -> usize {
-        assert!(level <= 3 && level >= 1);
-        self.0
-            & (PTEIDX_MASK_SV39 << ((level - 1) * PTEIDX_MASK_WIDTH_SV30))
-                >> ((level - 1) * PTEIDX_MASK_WIDTH_SV30)
+        assert!(level < 3);
+        (self.0 & (PTEIDX_MASK_SV39 << (level * PTEIDX_MASK_WIDTH_SV30)))
+            >> (level * PTEIDX_MASK_WIDTH_SV30)
     }
 }
 

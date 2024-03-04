@@ -37,7 +37,7 @@ impl GenericPagetableEntry<PTEFlagsSV39> for PageTableEntrySV39 {
     /// create a new pagetable entry
     fn new(ppn: PhysPageNumSV39, flags: PTEFlagsSV39) -> Self {
         PageTableEntrySV39 {
-            bits: ppn.0 << 10 | flags.bits as usize,
+            bits: (ppn.0 << 10) | flags.bits as usize,
         }
     }
     /// validity
