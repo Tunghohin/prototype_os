@@ -48,7 +48,7 @@ impl PageTable {
     }
 
     /// Find PageTableEntry by VirtPageNum. if does not exist, retuen None
-    fn find_pte(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
+    fn find_pte(&self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let mut ppn = self.root_ppn;
         log::debug!("vpn: {:x} {:b}", vpn.0, vpn.0);
         for level in (0..Arch::LEVEL).rev() {
@@ -78,10 +78,18 @@ impl PageTable {
     }
 
     /// Unmap a VirtPageNum
-    fn unmap(&mut self, vpn: VirtPageNum) {
+    pub fn unmap(&mut self, vpn: VirtPageNum) {
         let pte = self
             .find_pte(vpn)
             .expect("Unmap failed! Page table entry not found.");
         *pte = PageTableEntry::new(0.into(), PTEFlags::from_bits(0).unwrap());
+    }
+
+    pub fn translate_pte(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
+        self.find_pte(vpn).map(|pte| *pte)
+    }
+
+    pub fn translate_pa(&self, vpn: VirtPageNum) -> PhysPageNum {
+        self.translate_pte(vpn).unwrap().get_ppn()
     }
 }

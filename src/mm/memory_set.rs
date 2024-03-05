@@ -2,17 +2,19 @@
 
 use crate::hal::*;
 use crate::misc::range::SimpleRange;
+use crate::misc::range::StepByOne;
 use crate::mm::page_table::frame::frame_alloc;
 use crate::mm::page_table::frame::FrameTracker;
 use crate::mm::page_table::PageTable;
 use crate::sync::upsafecell::UPSafeCell;
 use crate::sysconfig::MEMORY_END;
+use crate::sysconfig::PAGE_SIZE;
 use crate::sysconfig::TRAMPOLINE;
 use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
-use bitflags::*;
 use lazy_static::*;
+use xmas_elf::*;
 
 type VPNRange = SimpleRange<VirtPageNum>;
 
@@ -40,20 +42,6 @@ pub enum MapType {
     Framed,
 }
 
-bitflags! {
-    /// map permission corresponding to that in pte: `R W X U`
-    pub struct MapPermission: u8 {
-        /// readable
-        const R = 1 << 1;
-        /// writable
-        const W = 1 << 2;
-        /// excutable
-        const X = 1 << 3;
-        /// u-mode accessible
-        const U = 1 << 4;
-    }
-}
-
 pub struct MemorySet {
     page_table: PageTable,
     segments: Vec<MapSegment>,
@@ -67,10 +55,25 @@ impl MemorySet {
         }
     }
 
-    pub fn insert_mapped_segment(seg: MapSegment, data: Option<&mut [u8]>) {}
-
-    pub fn insert_segment(&mut self, mut seg: MapSegment, data: Option<&mut [u8]>) {
+    pub fn insert_segment(&mut self, mut seg: MapSegment, data: Option<&[u8]>) {
         seg.map(&mut self.page_table);
+        if let Some(data) = data {
+            let mut current_vpn: VirtPageNum = seg.vpn_range.get_start().into();
+            let mut current_read: usize = 0;
+            let mut remain = data.len();
+            while remain != 0 {
+                let read_size = core::cmp::min(PAGE_SIZE, remain);
+                let src = &data[current_read..current_read + read_size];
+                let dst = self
+                    .page_table
+                    .translate_pa(current_vpn.into())
+                    .get_bytes_array_mut();
+                dst.copy_from_slice(src);
+                remain -= read_size;
+                current_vpn.step();
+                current_read += read_size;
+            }
+        }
         self.segments.push(seg);
     }
 
@@ -151,6 +154,55 @@ impl MemorySet {
 
         memory_set
     }
+
+    pub fn new_task(data: &[u8]) -> MemorySet {
+        let mut memory_set = MemorySet::new();
+        memory_set.map_trampoline();
+
+        let elf = xmas_elf::ElfFile::new(data).expect("Invalid ELF data!");
+        assert!(
+            elf.header.pt1.magic == [0x7f, 0x45, 0x4c, 0x46],
+            "Invalid ELF data!"
+        );
+        let program_header_count = elf.header.pt2.ph_count();
+        for i in 0..program_header_count {
+            let program_header = elf.program_header(i).unwrap();
+
+            match program_header.get_type().unwrap() {
+                xmas_elf::program::Type::Load => {
+                    let mut map_permission = MapPermission::U;
+                    let program_header_flag = program_header.flags();
+
+                    if program_header_flag.is_read() {
+                        map_permission |= MapPermission::R;
+                    }
+                    if program_header_flag.is_write() {
+                        map_permission |= MapPermission::W;
+                    }
+                    if program_header_flag.is_execute() {
+                        map_permission |= MapPermission::X;
+                    }
+
+                    let start_addr: VirtAddr = (program_header.virtual_addr() as usize).into();
+                    let end_addr: VirtAddr =
+                        ((program_header.virtual_addr() + program_header.mem_size()) as usize)
+                            .into();
+                    memory_set.insert_segment(
+                        MapSegment::new(start_addr, end_addr, MapType::Framed, map_permission),
+                        Some(
+                            &elf.input[program_header.offset() as usize
+                                ..(program_header.offset() + program_header.file_size()) as usize],
+                        ),
+                    )
+                }
+                _ => {
+                    continue;
+                }
+            }
+        }
+
+        memory_set
+    }
 }
 
 pub struct MapSegment {
@@ -189,7 +241,7 @@ impl MapSegment {
                 self.mapping.insert(vpn, frame);
             }
         }
-        let pte_flags = PTEFlags::from_bits(self.permission.bits).unwrap();
+        let pte_flags = PTEFlags::from_bits(self.permission.bits()).unwrap();
         page_table.map(vpn, ppn, pte_flags);
     }
 

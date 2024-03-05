@@ -24,6 +24,20 @@ bitflags! {
     }
 }
 
+bitflags! {
+    /// map permission corresponding to that in pte: `R W X U`
+    pub struct MapPermissionSV39: u8 {
+        /// readable
+        const R = 1 << 1;
+        /// writable
+        const W = 1 << 2;
+        /// excutable
+        const X = 1 << 3;
+        /// u-mode accessible
+        const U = 1 << 4;
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 /// pagetable entry
