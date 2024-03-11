@@ -64,7 +64,7 @@ impl GenericPagetableEntry<PTEFlagsSV39> for PageTableEntrySV39 {
     }
     /// writable
     fn is_writable(&self) -> bool {
-        (self.bits & PTEFlagsSV39::R.bits as usize) != 0
+        (self.bits & PTEFlagsSV39::W.bits as usize) != 0
     }
     /// executable
     fn is_executable(&self) -> bool {
@@ -72,7 +72,7 @@ impl GenericPagetableEntry<PTEFlagsSV39> for PageTableEntrySV39 {
     }
     /// u-mode accessibla
     fn is_uaccessible(&self) -> bool {
-        (self.bits & PTEFlagsSV39::V.bits as usize) != 0
+        (self.bits & PTEFlagsSV39::U.bits as usize) != 0
     }
     /// global mapping
     fn is_gmapping(&self) -> bool {

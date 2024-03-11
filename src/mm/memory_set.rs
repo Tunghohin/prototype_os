@@ -14,7 +14,6 @@ use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use lazy_static::*;
-use xmas_elf::*;
 
 type VPNRange = SimpleRange<VirtPageNum>;
 
@@ -66,7 +65,7 @@ impl MemorySet {
                 let src = &data[current_read..current_read + read_size];
                 let dst = self
                     .page_table
-                    .translate_pa(current_vpn.into())
+                    .translate_ppn(current_vpn.into())
                     .get_bytes_array_mut();
                 dst.copy_from_slice(src);
                 remain -= read_size;
@@ -94,14 +93,6 @@ impl MemorySet {
         let mut memory_set = MemorySet::new();
         memory_set.map_trampoline();
 
-        log::info!("kernel memory set:");
-        log::info!(".text [{:#x}, {:#x})", stext as usize, etext as usize);
-        log::info!(".rodata [{:#x}, {:#x})", srodata as usize, erodata as usize);
-        log::info!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
-        log::info!(".bss [{:#x}, {:#x})", sbss as usize, ebss as usize);
-        log::info!("mapping .text section");
-
-        log::info!("mapping .text section");
         memory_set.insert_segment(
             MapSegment::new(
                 (stext as usize).into(),
@@ -111,7 +102,6 @@ impl MemorySet {
             ),
             None,
         );
-        log::info!("mapping .rodata section");
         memory_set.insert_segment(
             MapSegment::new(
                 (srodata as usize).into(),
@@ -121,7 +111,6 @@ impl MemorySet {
             ),
             None,
         );
-        log::info!("mapping .data section");
         memory_set.insert_segment(
             MapSegment::new(
                 (sdata as usize).into(),
@@ -131,7 +120,6 @@ impl MemorySet {
             ),
             None,
         );
-        log::info!("mapping .bss section");
         memory_set.insert_segment(
             MapSegment::new(
                 (sbss as usize).into(),
@@ -141,7 +129,6 @@ impl MemorySet {
             ),
             None,
         );
-        log::info!("mapping physical memory");
         memory_set.insert_segment(
             MapSegment::new(
                 (ekernel as usize).into(),
@@ -250,4 +237,84 @@ impl MapSegment {
             self.map_one(vpn, page_table);
         })
     }
+}
+
+pub fn remap_test() {
+    let kernel_space = KERNEL_SPACE.exclusive_access();
+    let mid_text: VirtAddr = ((stext as usize + etext as usize) / 2).into();
+    let mid_rodata: VirtAddr = ((srodata as usize + erodata as usize) / 2).into();
+    let mid_data: VirtAddr = ((sdata as usize + edata as usize) / 2).into();
+    assert_eq!(
+        kernel_space
+            .page_table
+            .translate_pte(mid_text.into())
+            .unwrap()
+            .is_readable(),
+        true
+    );
+    assert_eq!(
+        kernel_space
+            .page_table
+            .translate_pte(mid_text.into())
+            .unwrap()
+            .is_executable(),
+        true
+    );
+    assert_eq!(
+        kernel_space
+            .page_table
+            .translate_pte(mid_text.into())
+            .unwrap()
+            .is_writable(),
+        false
+    );
+    assert_eq!(
+        kernel_space
+            .page_table
+            .translate_pte(mid_data.into())
+            .unwrap()
+            .is_writable(),
+        true
+    );
+    assert_eq!(
+        kernel_space
+            .page_table
+            .translate_pte(mid_data.into())
+            .unwrap()
+            .is_readable(),
+        true
+    );
+    assert_eq!(
+        kernel_space
+            .page_table
+            .translate_pte(mid_data.into())
+            .unwrap()
+            .is_executable(),
+        false
+    );
+    assert_eq!(
+        kernel_space
+            .page_table
+            .translate_pte(mid_rodata.into())
+            .unwrap()
+            .is_readable(),
+        true
+    );
+    assert_eq!(
+        kernel_space
+            .page_table
+            .translate_pte(mid_rodata.into())
+            .unwrap()
+            .is_executable(),
+        false
+    );
+    assert_eq!(
+        kernel_space
+            .page_table
+            .translate_pte(mid_rodata.into())
+            .unwrap()
+            .is_writable(),
+        false
+    );
+    crate::println!("[kernel testing] remap_test passed!");
 }
