@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use core::cmp;
+
 use crate::hal::*;
 use crate::misc::range::SimpleRange;
 use crate::misc::range::StepByOne;
@@ -7,9 +9,7 @@ use crate::mm::page_table::frame::frame_alloc;
 use crate::mm::page_table::frame::FrameTracker;
 use crate::mm::page_table::PageTable;
 use crate::sync::upsafecell::UPSafeCell;
-use crate::sysconfig::MEMORY_END;
-use crate::sysconfig::PAGE_SIZE;
-use crate::sysconfig::TRAMPOLINE;
+use crate::sysconfig::{MEMORY_END, PAGE_SIZE, TRAMPOLINE, TRAP_CONTEXT_BASE, USER_STACK_SIZE};
 use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
@@ -142,7 +142,8 @@ impl MemorySet {
         memory_set
     }
 
-    pub fn new_task(data: &[u8]) -> MemorySet {
+    /// return (MemorySet, uset_stack_top, entry_point)
+    pub fn new_task(data: &[u8]) -> (MemorySet, usize, usize) {
         let mut memory_set = MemorySet::new();
         memory_set.map_trampoline();
 
@@ -152,6 +153,7 @@ impl MemorySet {
             "Invalid ELF data!"
         );
         let program_header_count = elf.header.pt2.ph_count();
+        let mut max_vpn: VirtPageNum = VirtPageNum::from(0);
         for i in 0..program_header_count {
             let program_header = elf.program_header(i).unwrap();
 
@@ -180,15 +182,43 @@ impl MemorySet {
                             &elf.input[program_header.offset() as usize
                                 ..(program_header.offset() + program_header.file_size()) as usize],
                         ),
-                    )
+                    );
+                    max_vpn = cmp::max(max_vpn, end_addr.pagenum_ceil());
                 }
                 _ => {
                     continue;
                 }
             }
         }
+        let mut user_stack_bottom: usize = VirtAddr::from(max_vpn).into();
+        user_stack_bottom += PAGE_SIZE;
+        let user_stack_top = user_stack_bottom + USER_STACK_SIZE;
+        // map user stack
+        memory_set.insert_segment(
+            MapSegment::new(
+                user_stack_bottom.into(),
+                user_stack_top.into(),
+                MapType::Framed,
+                MapPermission::R | MapPermission::W | MapPermission::U,
+            ),
+            None,
+        );
+        // map trap context
+        memory_set.insert_segment(
+            MapSegment::new(
+                TRAP_CONTEXT_BASE.into(),
+                TRAMPOLINE.into(),
+                MapType::Framed,
+                MapPermission::R | MapPermission::W,
+            ),
+            None,
+        );
 
-        memory_set
+        (
+            memory_set,
+            user_stack_top,
+            elf.header.pt2.entry_point() as usize,
+        )
     }
 }
 
@@ -200,7 +230,7 @@ pub struct MapSegment {
 }
 
 impl MapSegment {
-    fn new(
+    pub fn new(
         start_vaddr: VirtAddr,
         end_vaddr: VirtAddr,
         map_type: MapType,

@@ -1,6 +1,7 @@
 use crate::misc::bitmanip::low_bit;
 use crate::println;
 use crate::sync::upsafecell::UPSafeCell;
+use crate::sysconfig::{PAGE_SIZE, TRAMPOLINE, USER_STACK_SIZE};
 use alloc::vec::Vec;
 use core::borrow::BorrowMut;
 use core::fmt::Debug;
@@ -41,13 +42,13 @@ impl PidBitMap {
 }
 
 /// Pid allocator
-struct PidAllocator {
+struct BitmapAllocator {
     bitmap: PidBitMap,
 }
 
-impl PidAllocator {
+impl BitmapAllocator {
     pub fn new() -> Self {
-        PidAllocator {
+        BitmapAllocator {
             bitmap: PidBitMap::new(),
         }
     }
@@ -64,7 +65,7 @@ impl PidAllocator {
     }
 }
 
-impl Debug for PidAllocator {
+impl Debug for BitmapAllocator {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("PidAllocator\n")
             .field("field  0", &format_args!("{:b}\n", self.bitmap.inner[0]))
@@ -88,12 +89,23 @@ impl Debug for PidAllocator {
 }
 
 lazy_static! {
-    static ref PID_ALLOCATOR: UPSafeCell<PidAllocator> =
-        unsafe { UPSafeCell::new(PidAllocator::new()) };
+    static ref PID_ALLOCATOR: UPSafeCell<BitmapAllocator> =
+        unsafe { UPSafeCell::new(BitmapAllocator::new()) };
+    static ref KSTACK_ALLOCATOR: UPSafeCell<BitmapAllocator> =
+        unsafe { UPSafeCell::new(BitmapAllocator::new()) };
 }
 
 pub fn pid_alloc() -> PidHandle {
     PID_ALLOCATOR.exclusive_access().request().unwrap()
+}
+
+pub struct KernelStack(usize);
+
+pub fn kstack_alloc() -> (KernelStack, usize, usize) {
+    let kstack_id = KSTACK_ALLOCATOR.exclusive_access().request().unwrap().0;
+    let kstack_top = TRAMPOLINE - kstack_id * (USER_STACK_SIZE + PAGE_SIZE);
+    let kstack_bottom = kstack_top - USER_STACK_SIZE;
+    (KernelStack(kstack_id), kstack_bottom, kstack_top)
 }
 
 /// Abstraction of Process Identifier
@@ -108,7 +120,7 @@ impl Drop for PidHandle {
 
 /// Use it after comment out drop trait of PidHandle
 #[allow(unused)]
-pub fn test() {
+pub fn pid_alloc_test() {
     // let mut holder: Vec<PidHandle> = Vec::new();
     for i in 0..127 {
         PID_ALLOCATOR.exclusive_access().request();

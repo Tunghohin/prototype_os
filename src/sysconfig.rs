@@ -15,3 +15,9 @@ pub const TRAMPOLINE: usize = usize::MAX - PAGE_SIZE + 1;
 
 /// the virtual addr of trap context
 pub const TRAP_CONTEXT_BASE: usize = TRAMPOLINE - PAGE_SIZE;
+
+/// user app's stack size
+pub const USER_STACK_SIZE: usize = PAGE_SIZE * 16;
+
+/// kernel stack size
+pub const KERNEL_STACK_SIZE: usize = PAGE_SIZE * 16;
