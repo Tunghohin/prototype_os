@@ -5,10 +5,11 @@ pub mod paging;
 pub mod sbi;
 pub mod trap;
 
-use self::paging::entry::PTEFlagsSV39;
+use self::paging::entry::{MapPermissionSV39, PTEFlagsSV39};
 use crate::hal::generic_address::AddressMetaData;
 use crate::hal::generic_paging::PagingMetaData;
 use crate::hal::riscv::address::{PhysAddrSV39, PhysPageNumSV39, VirtAddrSV39, VirtPageNumSV39};
+use crate::hal::riscv::context::ContextRV64;
 use crate::hal::riscv::paging::entry::PageTableEntrySV39;
 use crate::hal::{ArchMetaData, GenericArch};
 use crate::sysconfig::PAGE_SIZE_BITS;
@@ -36,6 +37,8 @@ impl GenericArch for ArchRISCV {
     type PhysPageNum = PhysPageNumSV39;
     type PageTableEntry = PageTableEntrySV39;
     type PTEFlags = PTEFlagsSV39;
+    type MapPermission = MapPermissionSV39;
+    type TaskContext = ContextRV64;
 }
 
 pub fn init() {

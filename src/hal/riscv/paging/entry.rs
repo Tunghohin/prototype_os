@@ -24,6 +24,20 @@ bitflags! {
     }
 }
 
+bitflags! {
+    /// map permission corresponding to that in pte: `R W X U`
+    pub struct MapPermissionSV39: u8 {
+        /// readable
+        const R = 1 << 1;
+        /// writable
+        const W = 1 << 2;
+        /// excutable
+        const X = 1 << 3;
+        /// u-mode accessible
+        const U = 1 << 4;
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 /// pagetable entry
@@ -50,7 +64,7 @@ impl GenericPagetableEntry<PTEFlagsSV39> for PageTableEntrySV39 {
     }
     /// writable
     fn is_writable(&self) -> bool {
-        (self.bits & PTEFlagsSV39::R.bits as usize) != 0
+        (self.bits & PTEFlagsSV39::W.bits as usize) != 0
     }
     /// executable
     fn is_executable(&self) -> bool {
@@ -58,7 +72,7 @@ impl GenericPagetableEntry<PTEFlagsSV39> for PageTableEntrySV39 {
     }
     /// u-mode accessibla
     fn is_uaccessible(&self) -> bool {
-        (self.bits & PTEFlagsSV39::V.bits as usize) != 0
+        (self.bits & PTEFlagsSV39::U.bits as usize) != 0
     }
     /// global mapping
     fn is_gmapping(&self) -> bool {

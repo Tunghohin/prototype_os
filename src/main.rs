@@ -13,8 +13,6 @@ mod task;
 
 use core::arch::global_asm;
 
-global_asm!(include_str!("entry.asm"));
-
 fn bootup_logo() {
     print!(
         r"
@@ -35,19 +33,20 @@ fn kernel_init() {
         fn ebss();
     }
     unsafe {
-        core::slice::from_raw_parts_mut(sbss as usize as *mut u8, ebss as usize - sbss as usize)
-            .fill(0);
+        core::slice::from_raw_parts_mut(sbss as *mut u8, ebss as usize - sbss as usize).fill(0);
     }
 
     misc::logger::init();
     hal::init();
     mm::init();
-    bootup_logo();
 }
+
+global_asm!(include_str!("entry.asm"));
 
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
     kernel_init();
+    bootup_logo();
     shut_down();
 }
 

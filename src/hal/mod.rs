@@ -26,6 +26,8 @@ pub trait GenericArch: ArchMetaData {
     type PhysPageNum;
     type PageTableEntry;
     type PTEFlags;
+    type MapPermission;
+    type TaskContext;
 }
 
 pub type VirtAddr = <Arch as GenericArch>::VirtAddr;
@@ -34,3 +36,5 @@ pub type PhysAddr = <Arch as GenericArch>::PhysAddr;
 pub type PhysPageNum = <Arch as GenericArch>::PhysPageNum;
 pub type PageTableEntry = <Arch as GenericArch>::PageTableEntry;
 pub type PTEFlags = <Arch as GenericArch>::PTEFlags; // Should be implemented by bitflags
+pub type MapPermission = <Arch as GenericArch>::MapPermission;
+pub type TaskContext = <Arch as GenericArch>::TaskContext;

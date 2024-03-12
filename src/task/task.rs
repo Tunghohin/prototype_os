@@ -1,9 +1,66 @@
+#![allow(dead_code)]
+
+use crate::hal::generic_context::GenericContext;
+use crate::hal::*;
+use crate::mm::memory_set::{MapSegment, MapType, MemorySet, KERNEL_SPACE};
 use crate::sync::upsafecell::UPSafeCell;
-use crate::task::pid::PidHandle;
+use crate::task::pid::{kstack_alloc, pid_alloc};
+use crate::task::pid::{KernelStack, PidHandle};
+use alloc::sync::{Arc, Weak};
+use alloc::vec::Vec;
 
 pub struct TaskContrlBlock {
     pub pid: PidHandle,
+    pub kstack: KernelStack,
     inner: UPSafeCell<TaskContrlBlockInner>,
 }
 
-struct TaskContrlBlockInner {}
+impl TaskContrlBlock {
+    pub fn new(elf_data: &[u8]) -> Self {
+        let (memory_set, user_stack_top, entry_point) = MemorySet::new_task(elf_data);
+        let pid = pid_alloc();
+        let (kstack, kstack_bottom, kstack_top) = kstack_alloc();
+        KERNEL_SPACE.exclusive_access().insert_segment(
+            MapSegment::new(
+                kstack_bottom.into(),
+                kstack_top.into(),
+                MapType::Framed,
+                MapPermission::W | MapPermission::R,
+            ),
+            None,
+        );
+        let cx = TaskContext::goto_trap_return(kstack_top);
+        TaskContrlBlock {
+            pid,
+            kstack,
+            inner: unsafe {
+                UPSafeCell::new(TaskContrlBlockInner {
+                    status: TaskStatus::Ready,
+                    cx,
+                    memory_set,
+                    exit_code: 0,
+                    parent: None,
+                    childern: Vec::new(),
+                })
+            },
+        }
+    }
+}
+
+struct TaskContrlBlockInner {
+    status: TaskStatus,
+    cx: TaskContext,
+    memory_set: MemorySet,
+    exit_code: i32,
+    parent: Option<Weak<TaskContrlBlock>>,
+    childern: Vec<Arc<TaskContrlBlock>>,
+}
+
+/// task status: UnInit, Ready, Running, Exited
+#[derive(Copy, Clone, PartialEq)]
+pub enum TaskStatus {
+    Ready,
+    Running,
+    UnInit,
+    Zombie,
+}
