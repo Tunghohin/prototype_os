@@ -39,7 +39,6 @@ fn kernel_init() {
     misc::logger::init();
     hal::init();
     mm::init();
-    bootup_logo();
 }
 
 global_asm!(include_str!("entry.asm"));
@@ -47,6 +46,7 @@ global_asm!(include_str!("entry.asm"));
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
     kernel_init();
+    bootup_logo();
     shut_down();
 }
 

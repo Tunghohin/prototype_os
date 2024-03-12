@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use crate::hal::generic_context::GenericContext;
 use crate::hal::*;
 use crate::mm::memory_set::{MapSegment, MapType, MemorySet, KERNEL_SPACE};
 use crate::sync::upsafecell::UPSafeCell;
@@ -28,10 +29,20 @@ impl TaskContrlBlock {
             ),
             None,
         );
+        let cx = TaskContext::goto_trap_return(kstack_top);
         TaskContrlBlock {
             pid,
             kstack,
-            inner: unsafe { core::mem::zeroed::<UPSafeCell<TaskContrlBlockInner>>() },
+            inner: unsafe {
+                UPSafeCell::new(TaskContrlBlockInner {
+                    status: TaskStatus::Ready,
+                    cx,
+                    memory_set,
+                    exit_code: 0,
+                    parent: None,
+                    childern: Vec::new(),
+                })
+            },
         }
     }
 }
@@ -39,7 +50,7 @@ impl TaskContrlBlock {
 struct TaskContrlBlockInner {
     status: TaskStatus,
     cx: TaskContext,
-    memset: MemorySet,
+    memory_set: MemorySet,
     exit_code: i32,
     parent: Option<Weak<TaskContrlBlock>>,
     childern: Vec<Arc<TaskContrlBlock>>,

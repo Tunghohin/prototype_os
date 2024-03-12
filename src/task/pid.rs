@@ -1,8 +1,7 @@
 use crate::misc::bitmanip::low_bit;
 use crate::println;
 use crate::sync::upsafecell::UPSafeCell;
-use crate::sysconfig::{PAGE_SIZE, TRAMPOLINE, USER_STACK_SIZE};
-use alloc::vec::Vec;
+use crate::sysconfig::{KERNEL_STACK_SIZE, PAGE_SIZE, TRAMPOLINE};
 use core::borrow::BorrowMut;
 use core::fmt::Debug;
 use lazy_static::*;
@@ -103,8 +102,8 @@ pub struct KernelStack(usize);
 
 pub fn kstack_alloc() -> (KernelStack, usize, usize) {
     let kstack_id = KSTACK_ALLOCATOR.exclusive_access().request().unwrap().0;
-    let kstack_top = TRAMPOLINE - kstack_id * (USER_STACK_SIZE + PAGE_SIZE);
-    let kstack_bottom = kstack_top - USER_STACK_SIZE;
+    let kstack_top = TRAMPOLINE - kstack_id * (KERNEL_STACK_SIZE + PAGE_SIZE);
+    let kstack_bottom = kstack_top - KERNEL_STACK_SIZE;
     (KernelStack(kstack_id), kstack_bottom, kstack_top)
 }
 
