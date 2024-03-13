@@ -41,7 +41,7 @@ pub struct RegistersRV64 {
 #[allow(missing_docs)]
 #[repr(C)]
 #[derive(Default, Debug, Clone)]
-pub struct ContextRV64 {
+pub struct TaskContextRV64 {
     pub ra: usize,
     pub sp: usize,
     pub s0: usize,
@@ -58,9 +58,9 @@ pub struct ContextRV64 {
     pub s11: usize,
 }
 
-impl GenericContext<ContextRV64> for ContextRV64 {
-    fn goto_trap_return(kstack_ptr: usize) -> ContextRV64 {
-        let mut ret = ContextRV64::zero_init();
+impl GenericContext<TaskContextRV64> for TaskContextRV64 {
+    fn goto_trap_return(kstack_ptr: usize) -> TaskContextRV64 {
+        let mut ret = TaskContextRV64::zero_init();
         ret.ra = crate::hal::generic_trap::trap_return as usize;
         ret.sp = kstack_ptr;
         ret

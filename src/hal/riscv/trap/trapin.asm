@@ -1,8 +1,9 @@
-    .section .text
+    .section .text.trampoline
     .globl __trapin
     .globl __restore
-    .align 4
+    .align 2
 __trapin:
+    csrrw sp, sscratch, sp
     call trap_handler
 
 __restore:
