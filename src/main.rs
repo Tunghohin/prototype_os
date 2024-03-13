@@ -26,8 +26,8 @@ __________                __          __                        ________    ____
     );
 }
 
-fn kernel_init() {
-    // clear bss
+/// clear bss
+fn clear_bss() {
     extern "C" {
         fn sbss();
         fn ebss();
@@ -35,7 +35,10 @@ fn kernel_init() {
     unsafe {
         core::slice::from_raw_parts_mut(sbss as *mut u8, ebss as usize - sbss as usize).fill(0);
     }
+}
 
+fn kernel_init() {
+    clear_bss();
     misc::logger::init();
     hal::init();
     mm::init();
