@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 pub mod generic_address;
 pub mod generic_context;
 pub mod generic_paging;
@@ -10,6 +12,11 @@ pub use crate::hal::riscv::*;
 
 pub mod riscv;
 pub mod x86_64;
+
+pub use generic_address::*;
+pub use generic_context::*;
+pub use generic_paging::*;
+pub use generic_trap::*;
 
 pub type Arch = ArchRISCV;
 

@@ -29,6 +29,10 @@ debug: build
 gdb:
 	${GDB} -x ./.gdbinit -q
 
+.PHONY: check
+check:
+	cargo check
+
 
 .PHONY: qemu
 qemu: build objcopy

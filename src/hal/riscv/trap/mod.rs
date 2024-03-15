@@ -1,7 +1,16 @@
 use crate::hal::generic_trap::GenericTrap;
 use crate::hal::riscv::context::RegistersRV64;
 use core::arch::global_asm;
+<<<<<<< HEAD
 use riscv::register::{mtvec::TrapMode, satp, sstatus, sstatus::set_spp, sstatus::Sstatus, stvec};
+=======
+use riscv::register::{
+    mtvec::TrapMode,
+    satp::{self, Satp},
+    sstatus::{self, set_spp, Sstatus},
+    stvec,
+};
+>>>>>>> dev-mm
 
 global_asm!(include_str!("trapin.asm"));
 
@@ -34,7 +43,7 @@ pub extern "C" fn trap_from_kernel() -> ! {
 #[repr(C)]
 pub struct TrapContextRV64 {
     /// General-Purpose Register x0-31
-    pub register: RegistersRV64,
+    pub regs: RegistersRV64,
     /// Supervisor Status Register
     pub sstatus: Sstatus,
     /// Supervisor Exception Program Counter
@@ -48,9 +57,27 @@ pub struct TrapContextRV64 {
 }
 
 impl GenericTrap<TrapContextRV64> for TrapContextRV64 {
-    fn task_init() -> TrapContextRV64 {
+    fn task_init(entry: usize, user_sp: usize, kernel_sp: usize) -> TrapContextRV64 {
         let mut sstatus = sstatus::read();
         sstatus.set_spp(sstatus::SPP::User);
+<<<<<<< HEAD
         unsafe { core::mem::zeroed::<TrapContextRV64>() }
+=======
+        let mut cx = TrapContextRV64 {
+            regs: unsafe { core::mem::zeroed::<RegistersRV64>() },
+            sstatus,
+            sepc: entry,
+            kernel_satp: satp::read().bits(),
+            kernel_sp,
+            trap_handler: trap_handler as usize,
+        };
+        cx.regs.sp = user_sp;
+        cx
+>>>>>>> dev-mm
     }
+}
+
+#[no_mangle]
+pub fn trap_return() {
+    panic!("Trap return!");
 }
