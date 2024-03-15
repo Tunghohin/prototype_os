@@ -8,14 +8,15 @@ use crate::task::pid::{kstack_alloc, pid_alloc};
 use crate::task::pid::{KernelStack, PidHandle};
 use alloc::sync::{Arc, Weak};
 use alloc::vec::Vec;
+use core::cell::RefMut;
 
-pub struct TaskContrlBlock {
+pub struct TaskControlBlock {
     pub pid: PidHandle,
     pub kstack: KernelStack,
-    inner: UPSafeCell<TaskContrlBlockInner>,
+    inner: UPSafeCell<TaskControlBlockInner>,
 }
 
-impl TaskContrlBlock {
+impl TaskControlBlock {
     pub fn new(elf_data: &[u8]) -> Self {
         let (memory_set, user_stack_top, entry_point) = MemorySet::new_task(elf_data);
         let pid = pid_alloc();
@@ -30,11 +31,11 @@ impl TaskContrlBlock {
             None,
         );
         let cx = TaskContext::goto_trap_return(kstack_top);
-        TaskContrlBlock {
+        TaskControlBlock {
             pid,
             kstack,
             inner: unsafe {
-                UPSafeCell::new(TaskContrlBlockInner {
+                UPSafeCell::new(TaskControlBlockInner {
                     status: TaskStatus::Ready,
                     cx,
                     memory_set,
@@ -47,13 +48,19 @@ impl TaskContrlBlock {
     }
 }
 
-struct TaskContrlBlockInner {
-    status: TaskStatus,
-    cx: TaskContext,
-    memory_set: MemorySet,
-    exit_code: i32,
-    parent: Option<Weak<TaskContrlBlock>>,
-    childern: Vec<Arc<TaskContrlBlock>>,
+impl TaskControlBlock {
+    pub fn inner_exclusive_access(&self) -> RefMut<'_, TaskControlBlockInner> {
+        self.inner.exclusive_access()
+    }
+}
+
+pub struct TaskControlBlockInner {
+    pub status: TaskStatus,
+    pub cx: TaskContext,
+    pub memory_set: MemorySet,
+    pub exit_code: i32,
+    pub parent: Option<Weak<TaskControlBlock>>,
+    pub childern: Vec<Arc<TaskControlBlock>>,
 }
 
 /// task status: UnInit, Ready, Running, Exited
