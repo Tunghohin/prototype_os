@@ -1,7 +1,7 @@
 use crate::hal::generic_trap::GenericTrap;
 use crate::hal::riscv::context::RegistersRV64;
 use core::arch::global_asm;
-use riscv::register::{mtvec::TrapMode, satp, sstatus, sstatus::set_spp, sstatus::Sstatus};
+use riscv::register::{mtvec::TrapMode, satp, sstatus, sstatus::set_spp, sstatus::Sstatus, stvec};
 
 global_asm!(include_str!("trapin.asm"));
 
@@ -51,5 +51,6 @@ impl GenericTrap<TrapContextRV64> for TrapContextRV64 {
     fn task_init() -> TrapContextRV64 {
         let mut sstatus = sstatus::read();
         sstatus.set_spp(sstatus::SPP::User);
+        unsafe { core::mem::zeroed::<TrapContextRV64>() }
     }
 }
