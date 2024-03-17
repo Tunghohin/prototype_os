@@ -1,19 +1,21 @@
+#![allow(dead_code)]
+
 use crate::hal::*;
 use crate::sync::upsafecell::UPSafeCell;
-use crate::task::cpu::CPU;
+use crate::task::cpu::PROCESSOR;
 use crate::task::task::TaskControlBlock;
 use crate::task::task::TaskStatus;
 use alloc::collections::VecDeque;
 use alloc::sync::Arc;
 use lazy_static::*;
 
-pub struct TaskScheduler {
+pub struct TaskReadyQueue {
     queue: VecDeque<Arc<TaskControlBlock>>,
 }
 
-impl TaskScheduler {
+impl TaskReadyQueue {
     fn new() -> Self {
-        TaskScheduler {
+        TaskReadyQueue {
             queue: VecDeque::new(),
         }
     }
@@ -28,12 +30,8 @@ impl TaskScheduler {
 }
 
 lazy_static! {
-    pub static ref TASK_QUEUE: UPSafeCell<TaskScheduler> =
-        unsafe { UPSafeCell::new(TaskScheduler::new()) };
-}
-
-lazy_static! {
-    pub static ref PROCESSOR: UPSafeCell<CPU> = unsafe { UPSafeCell::new(CPU::new()) };
+    pub static ref TASK_QUEUE: UPSafeCell<TaskReadyQueue> =
+        unsafe { UPSafeCell::new(TaskReadyQueue::new()) };
 }
 
 pub fn add_task(new_task: Arc<TaskControlBlock>) {
@@ -49,15 +47,15 @@ pub fn run_task() {
         let mut processor = PROCESSOR.exclusive_access();
         if let Some(task) = fetch_task() {
             let mut task_inner = task.inner_exclusive_access();
-            let task_cx = &mut task_inner.cx as *mut TaskContext;
-            let idle_cx = &processor.idle_task_cx as *const TaskContext;
+            let idle_cx = &mut processor.idle_task_cx as *mut TaskContext;
+            let task_cx = &task_inner.cx as *const TaskContext;
             task_inner.status = TaskStatus::Running;
             drop(task_inner);
             processor.current = Some(task);
             drop(processor);
             TaskContext::switch(idle_cx, task_cx);
         } else {
-            panic!("no task");
+            panic!("All task finished!");
         }
     }
 }

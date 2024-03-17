@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::misc::bitmanip::low_bit;
 use crate::println;
 use crate::sync::upsafecell::UPSafeCell;
@@ -90,26 +92,33 @@ impl Debug for BitmapAllocator {
 lazy_static! {
     static ref PID_ALLOCATOR: UPSafeCell<BitmapAllocator> =
         unsafe { UPSafeCell::new(BitmapAllocator::new()) };
-    static ref KSTACK_ALLOCATOR: UPSafeCell<BitmapAllocator> =
-        unsafe { UPSafeCell::new(BitmapAllocator::new()) };
 }
 
 pub fn pid_alloc() -> PidHandle {
     PID_ALLOCATOR.exclusive_access().request().unwrap()
 }
 
-pub struct KernelStack(usize);
+/// Kernel stack address wrapper
+pub struct KernelStack {
+    pub id: usize,
+}
 
-pub fn kstack_alloc() -> (KernelStack, usize, usize) {
-    let kstack_id = KSTACK_ALLOCATOR.exclusive_access().request().unwrap().0;
-    let kstack_top = TRAMPOLINE - kstack_id * (KERNEL_STACK_SIZE + PAGE_SIZE);
-    let kstack_bottom = kstack_top - KERNEL_STACK_SIZE;
-    (KernelStack(kstack_id), kstack_bottom, kstack_top)
+impl KernelStack {
+    pub fn get_kstack_top(&self) -> usize {
+        TRAMPOLINE - self.id * (KERNEL_STACK_SIZE + PAGE_SIZE)
+    }
+    pub fn get_kstack_bottom(&self) -> usize {
+        self.get_kstack_top() - KERNEL_STACK_SIZE
+    }
+}
+
+pub fn kstack_alloc(pid: &PidHandle) -> KernelStack {
+    KernelStack { id: pid.0 }
 }
 
 /// Abstraction of Process Identifier
 #[derive(Debug)]
-pub struct PidHandle(usize);
+pub struct PidHandle(pub usize);
 
 impl Drop for PidHandle {
     fn drop(&mut self) {
