@@ -23,7 +23,11 @@ pub fn set_trap_entry_user() {
     }
 }
 
-pub fn init() {}
+pub fn init() {
+    unsafe {
+        stvec::write(trap_from_kernel as usize, TrapMode::Direct);
+    }
+}
 
 /// Trap handler
 #[no_mangle]
@@ -45,6 +49,13 @@ pub extern "C" fn trap_handler() {
 
 #[no_mangle]
 pub extern "C" fn trap_from_kernel() -> ! {
+    let scause = scause::read();
+    let stval = stval::read();
+    // panic!(
+    //     "Trap from kernel is not yet supported!: scause: {:?}, stval: {:?}",
+    //     scause.cause(),
+    //     stval
+    // );
     panic!("Trap from kernel is not yet supported!");
 }
 

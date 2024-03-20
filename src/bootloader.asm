@@ -7,7 +7,7 @@ _start:
     .section .bss.stack
     .globl sboot_stack
 sboot_stack:
-    .space 4096 * 16
+    .space 4096 * 32
     .globl eboot_stack
 eboot_stack:
 
@@ -16,8 +16,9 @@ eboot_stack:
     .global _num_app
 _num_app: 
     .quad 2
-    .quad app0_start
-    .quad app1_start
+    .quad _app0_start
+    .quad _app1_start
+    .quad _app1_end
     
 .global _app_names
 _app_names:
@@ -25,17 +26,17 @@ _app_names:
     .string "console_out"
 
     .section .data
-    .global app0_start
-    .global app0_end
+    .global _app0_start
+    .global _app0_end
     .align 4
-app0_start:
+_app0_start:
     .incbin "../prototype_lib/target/riscv64gc-unknown-none-elf/release/initproc"
-app0_end:
+_app0_end:
 
     .section .data
-    .global app1_start
-    .global app1_end
+    .global _app1_start
+    .global _app1_end
     .align 4
-app1_start:
+_app1_start:
     .incbin "../prototype_lib/target/riscv64gc-unknown-none-elf/release/console_out"
-app1_end:
+_app1_end:

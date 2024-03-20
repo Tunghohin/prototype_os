@@ -42,7 +42,6 @@ fn clear_bss() {
 
 fn kernel_init() {
     clear_bss();
-    misc::logger::init();
     hal::init();
     mm::init();
 }
@@ -51,7 +50,7 @@ fn kernel_init() {
 pub extern "C" fn rust_main() -> ! {
     kernel_init();
     bootup_logo();
-    println!("{}", loader::get_num_app());
+    mm::memory_set::MemorySet::new_task(loader::get_app_data(1));
     shut_down();
 }
 

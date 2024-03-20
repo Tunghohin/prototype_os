@@ -23,7 +23,7 @@ objdump: build
 	rust-objdump -dw ${TARGET_DIR}/prototype_os
 
 .PHONY: debug
-debug: build
+debug: objcopy
 	${QEMU} ${QEMU_FLAG} -s -S	
 
 .PHONY: gdb
@@ -36,5 +36,5 @@ check:
 
 
 .PHONY: qemu
-qemu: build objcopy
+qemu: objcopy
 	${QEMU} ${QEMU_FLAG}

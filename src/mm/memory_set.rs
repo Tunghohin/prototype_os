@@ -63,11 +63,11 @@ impl MemorySet {
             while remain != 0 {
                 let read_size = core::cmp::min(PAGE_SIZE, remain);
                 let src = &data[current_read..current_read + read_size];
-                let dst = self
+                let dst = &mut self
                     .page_table
                     .translate_ppn(current_vpn.into())
-                    .get_bytes_array_mut();
-                dst.copy_from_slice(src);
+                    .get_bytes_array_mut()[..src.len()];
+                dst.clone_from_slice(src);
                 remain -= read_size;
                 current_vpn.step();
                 current_read += read_size;
