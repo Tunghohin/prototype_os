@@ -20,7 +20,7 @@ _num_app:
     .quad _app1_start
     .quad _app1_end
     
-.global _app_names
+    .global _app_names
 _app_names:
     .string "initproc"
     .string "console_out"

@@ -5,7 +5,3 @@ layout src
 layout regs
 b rust_main
 c
-b mm::memory_set::MemorySet::new_task
-c
-b mm::memory_set::MemorySet::map_trampoline
-c

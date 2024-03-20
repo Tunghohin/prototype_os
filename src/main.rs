@@ -50,7 +50,14 @@ fn kernel_init() {
 pub extern "C" fn rust_main() -> ! {
     kernel_init();
     bootup_logo();
-    mm::memory_set::MemorySet::new_task(loader::get_app_data(1));
+    println!("{}", loader::get_app_id_by_name("initproc"));
+    println!("{}", loader::get_app_id_by_name("initproc"));
+    println!("{}", loader::get_app_id_by_name("initproc"));
+    println!("{}", loader::get_app_id_by_name("initproc"));
+    println!("{}", loader::get_app_id_by_name("console_out"));
+    println!("{}", loader::get_app_id_by_name("initproc"));
+    println!("{}", loader::get_app_id_by_name("initproc"));
+    println!("{}", loader::get_app_id_by_name("consoasdfle_out"));
     shut_down();
 }
 
