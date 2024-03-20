@@ -47,8 +47,8 @@ SECTIONS
     ebss = .;
     ekernel = .;
     
-    /* . = ALIGN(4K); */
-    /* . = MEMORY_END; */
+    . = ALIGN(4K);
+    . = MEMORY_END;
 
     /DISCARD/ : {
         *(.eh_frame)

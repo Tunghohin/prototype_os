@@ -31,6 +31,12 @@ impl FrameTracker {
     }
 }
 
+impl Drop for FrameTracker {
+    fn drop(&mut self) {
+        frame_dealloc(self.ppn);
+    }
+}
+
 pub struct StackFrameAllocator {
     current: usize,
     end: usize,

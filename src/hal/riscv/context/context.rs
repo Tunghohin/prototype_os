@@ -1,8 +1,7 @@
 use crate::hal::generic_context::GenericContext;
 use core::arch::asm;
 
-/// General registers of RISC-V.
-#[allow(missing_docs)]
+/// General registers of riscv64.
 #[repr(C)]
 #[derive(Debug, Default, Clone)]
 pub struct RegistersRV64 {
@@ -39,7 +38,7 @@ pub struct RegistersRV64 {
     pub t6: usize,
 }
 
-#[allow(missing_docs)]
+/// Task Context of riscv64
 #[repr(C)]
 #[derive(Default, Debug, Clone)]
 pub struct TaskContextRV64 {
@@ -68,8 +67,8 @@ impl GenericContext<TaskContextRV64> for TaskContextRV64 {
     }
 
     fn switch(
-        current_task_cx_ptr: *const TaskContextRV64,
-        next_task_cx_ptr: *mut TaskContextRV64,
+        current_task_cx_ptr: *mut TaskContextRV64,
+        next_task_cx_ptr: *const TaskContextRV64,
     ) -> ! {
         unsafe {
             asm!(

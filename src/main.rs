@@ -5,6 +5,7 @@ extern crate alloc;
 
 mod hal;
 mod lang_items;
+mod loader;
 mod misc;
 mod mm;
 mod sync;
@@ -12,6 +13,8 @@ mod sysconfig;
 mod task;
 
 use core::arch::global_asm;
+
+global_asm!(include_str!("bootloader.asm"));
 
 fn bootup_logo() {
     print!(
@@ -39,17 +42,15 @@ fn clear_bss() {
 
 fn kernel_init() {
     clear_bss();
-    misc::logger::init();
     hal::init();
     mm::init();
 }
-
-global_asm!(include_str!("entry.asm"));
 
 #[no_mangle]
 pub extern "C" fn rust_main() -> ! {
     kernel_init();
     bootup_logo();
+    mm::memory_set::MemorySet::new_task(loader::get_app_data(1));
     shut_down();
 }
 
