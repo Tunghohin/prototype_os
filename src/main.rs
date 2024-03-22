@@ -50,14 +50,11 @@ fn kernel_init() {
 pub extern "C" fn rust_main() -> ! {
     kernel_init();
     bootup_logo();
-    println!("{}", loader::get_app_id_by_name("initproc"));
-    println!("{}", loader::get_app_id_by_name("initproc"));
-    println!("{}", loader::get_app_id_by_name("initproc"));
-    println!("{}", loader::get_app_id_by_name("initproc"));
-    println!("{}", loader::get_app_id_by_name("console_out"));
-    println!("{}", loader::get_app_id_by_name("initproc"));
-    println!("{}", loader::get_app_id_by_name("initproc"));
-    println!("{}", loader::get_app_id_by_name("consoasdfle_out"));
+    crate::task::sche::add_task(crate::task::task::INITPROC.clone());
+    crate::task::sche::add_task(crate::task::task::INITPROC.clone());
+    crate::task::sche::add_task(crate::task::task::INITPROC.clone());
+    crate::task::sche::add_task(crate::task::task::INITPROC.clone());
+    println!("{}", crate::task::sche::TASK_QUEUE.exclusive_access().len());
     shut_down();
 }
 

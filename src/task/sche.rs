@@ -27,6 +27,10 @@ impl TaskReadyQueue {
     fn pop(&mut self) -> Option<Arc<TaskControlBlock>> {
         self.queue.pop_front()
     }
+
+    pub fn len(&mut self) -> usize {
+        self.queue.len()
+    }
 }
 
 lazy_static! {
@@ -38,7 +42,7 @@ pub fn add_task(new_task: Arc<TaskControlBlock>) {
     TASK_QUEUE.exclusive_access().push(new_task);
 }
 
-fn fetch_task() -> Option<Arc<TaskControlBlock>> {
+pub fn fetch_task() -> Option<Arc<TaskControlBlock>> {
     TASK_QUEUE.exclusive_access().pop()
 }
 

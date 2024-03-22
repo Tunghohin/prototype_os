@@ -79,6 +79,8 @@ impl PageTable {
     }
 
     pub fn translate_ppn(&self, vpn: VirtPageNum) -> PhysPageNum {
-        self.translate_pte(vpn).unwrap().get_ppn()
+        self.translate_pte(vpn)
+            .expect("Not a valid VirtPageNum")
+            .get_ppn()
     }
 }
