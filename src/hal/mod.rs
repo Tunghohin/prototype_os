@@ -35,6 +35,7 @@ pub trait GenericArch: ArchMetaData {
     type PTEFlags;
     type MapPermission;
     type TaskContext;
+    type TrapContext;
 }
 
 pub type VirtAddr = <Arch as GenericArch>::VirtAddr;
@@ -45,3 +46,4 @@ pub type PageTableEntry = <Arch as GenericArch>::PageTableEntry;
 pub type PTEFlags = <Arch as GenericArch>::PTEFlags; // Should be implemented by bitflags
 pub type MapPermission = <Arch as GenericArch>::MapPermission;
 pub type TaskContext = <Arch as GenericArch>::TaskContext;
+pub type TrapContext = <Arch as GenericArch>::TrapContext;

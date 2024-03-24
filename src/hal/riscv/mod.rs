@@ -3,9 +3,11 @@ pub mod console;
 pub mod context;
 pub mod paging;
 pub mod sbi;
+pub mod syscall;
 pub mod trap;
 
 use self::paging::entry::{MapPermissionSV39, PTEFlagsSV39};
+use self::trap::TrapContextRV64;
 use crate::hal::generic_address::AddressMetaData;
 use crate::hal::generic_paging::PagingMetaData;
 use crate::hal::riscv::address::{PhysAddrSV39, PhysPageNumSV39, VirtAddrSV39, VirtPageNumSV39};
@@ -39,6 +41,7 @@ impl GenericArch for ArchRISCV {
     type PTEFlags = PTEFlagsSV39;
     type MapPermission = MapPermissionSV39;
     type TaskContext = TaskContextRV64;
+    type TrapContext = TrapContextRV64;
 }
 
 pub fn init() {

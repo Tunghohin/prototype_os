@@ -1,13 +1,16 @@
 #![allow(dead_code)]
 
 use crate::hal::*;
+use crate::loader::get_app_data_by_name;
 use crate::mm::memory_set::{MapSegment, MapType, MemorySet, KERNEL_SPACE};
 use crate::sync::upsafecell::UPSafeCell;
+use crate::sysconfig::TRAP_CONTEXT_BASE;
 use crate::task::pid::{kstack_alloc, pid_alloc};
 use crate::task::pid::{KernelStack, PidHandle};
 use alloc::sync::{Arc, Weak};
 use alloc::vec::Vec;
 use core::cell::RefMut;
+use lazy_static::*;
 
 pub struct TaskControlBlock {
     /// Process id handle of this task
@@ -24,6 +27,7 @@ impl TaskControlBlock {
         let (memory_set, user_stack_top, entry_point) = MemorySet::new_task(elf_data);
         let pid = pid_alloc();
         let kstack = kstack_alloc(&pid);
+
         KERNEL_SPACE.exclusive_access().insert_segment(
             MapSegment::new(
                 kstack.get_kstack_bottom().into(),
@@ -33,12 +37,18 @@ impl TaskControlBlock {
             ),
             None,
         );
+
         let cx = TaskContext::goto_trap_return(kstack.get_kstack_top());
+        let trap_cx_ppn = memory_set.translate_ppn(VirtAddr::from(TRAP_CONTEXT_BASE).into());
+        let trap_cx: &mut TrapContext = PhysAddr::from(trap_cx_ppn).get_mut();
+        *trap_cx = TrapContext::task_init_cx(entry_point, user_stack_top, kstack.get_kstack_top());
+
         TaskControlBlock {
             pid,
             kstack,
             inner: unsafe {
                 UPSafeCell::new(TaskControlBlockInner {
+                    trap_cx_ppn,
                     status: TaskStatus::Ready,
                     cx,
                     memory_set,
@@ -60,6 +70,8 @@ impl TaskControlBlock {
 }
 
 pub struct TaskControlBlockInner {
+    /// Trap context of this task
+    pub trap_cx_ppn: PhysPageNum,
     /// Context of this task
     pub cx: TaskContext,
     /// Status of this task
@@ -85,4 +97,9 @@ pub enum TaskStatus {
     UnInit,
     /// Zombie
     Zombie,
+}
+
+lazy_static! {
+    pub static ref INITPROC: Arc<TaskControlBlock> =
+        Arc::new(TaskControlBlock::new(get_app_data_by_name("initproc")));
 }

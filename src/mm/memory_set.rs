@@ -220,6 +220,18 @@ impl MemorySet {
             elf.header.pt2.entry_point() as usize,
         )
     }
+
+    pub fn get_root_ppn(&self) -> PhysPageNum {
+        self.page_table.get_root_ppn()
+    }
+
+    pub fn translate_ppn(&self, vpn: VirtPageNum) -> PhysPageNum {
+        self.page_table.translate_ppn(vpn)
+    }
+
+    pub fn translate_pte(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
+        self.page_table.translate_pte(vpn)
+    }
 }
 
 pub struct MapSegment {
