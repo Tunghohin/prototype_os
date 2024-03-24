@@ -1,3 +1,5 @@
+use core::cell::RefMut;
+
 use crate::hal::*;
 use crate::sync::upsafecell::UPSafeCell;
 use crate::task::task::TaskControlBlock;
@@ -15,6 +17,23 @@ impl Processor {
             current: None,
             idle_task_cx: TaskContext::zero_init(),
         }
+    }
+
+    pub fn take_current_task(&mut self) -> Option<Arc<TaskControlBlock>> {
+        self.current.take()
+    }
+
+    pub fn current_task(&mut self) -> Option<Arc<TaskControlBlock>> {
+        self.current.as_mut().cloned()
+    }
+
+    pub fn current_task_token_ppn(&mut self) -> usize {
+        self.current_task()
+            .expect("No current task!")
+            .inner_exclusive_access()
+            .memory_set
+            .get_root_ppn()
+            .0
     }
 }
 

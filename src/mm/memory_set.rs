@@ -221,6 +221,10 @@ impl MemorySet {
         )
     }
 
+    pub fn get_root_ppn(&self) -> PhysPageNum {
+        self.page_table.get_root_ppn()
+    }
+
     pub fn translate_ppn(&self, vpn: VirtPageNum) -> PhysPageNum {
         self.page_table.translate_ppn(vpn)
     }

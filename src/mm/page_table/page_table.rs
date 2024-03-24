@@ -83,4 +83,8 @@ impl PageTable {
             .expect("Not a valid VirtPageNum")
             .get_ppn()
     }
+
+    pub fn get_root_ppn(&self) -> PhysPageNum {
+        self.root_ppn
+    }
 }
