@@ -97,6 +97,6 @@ impl GenericTrap<TrapContextRV64> for TrapContextRV64 {
 }
 
 #[no_mangle]
-pub fn trap_return() {
+pub extern "C" fn trap_return() {
     panic!("Trap return!");
 }

@@ -50,6 +50,8 @@ fn kernel_init() {
 pub extern "C" fn rust_main() -> ! {
     kernel_init();
     bootup_logo();
+    task::init();
+    task::sche::run_task();
     shut_down();
 }
 
