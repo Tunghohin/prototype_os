@@ -50,11 +50,6 @@ fn kernel_init() {
 pub extern "C" fn rust_main() -> ! {
     kernel_init();
     bootup_logo();
-    crate::task::sche::add_task(crate::task::task::INITPROC.clone());
-    crate::task::sche::add_task(crate::task::task::INITPROC.clone());
-    crate::task::sche::add_task(crate::task::task::INITPROC.clone());
-    crate::task::sche::add_task(crate::task::task::INITPROC.clone());
-    println!("{}", crate::task::sche::TASK_QUEUE.exclusive_access().len());
     shut_down();
 }
 
