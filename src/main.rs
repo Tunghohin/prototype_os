@@ -41,7 +41,7 @@ fn clear_bss() {
 }
 
 fn kernel_init() {
-    clear_bss();
+    //clear_bss();
     hal::init();
     mm::init();
 }
@@ -51,6 +51,7 @@ pub extern "C" fn rust_main() -> ! {
     kernel_init();
     bootup_logo();
     task::init();
+    task::sche::run_task();
     shut_down();
 }
 

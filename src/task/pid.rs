@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 
+use crate::hal::MapPermission;
 use crate::misc::bitmanip::low_bit;
+use crate::mm::memory_set::{MapSegment, MapType, KERNEL_SPACE};
 use crate::println;
 use crate::sync::upsafecell::UPSafeCell;
 use crate::sysconfig::{KERNEL_STACK_SIZE, PAGE_SIZE, TRAMPOLINE};
@@ -113,7 +115,18 @@ impl KernelStack {
 }
 
 pub fn kstack_alloc(pid: &PidHandle) -> KernelStack {
-    KernelStack { id: pid.0 }
+    let kstack = KernelStack { id: pid.0 };
+    KERNEL_SPACE.exclusive_access().insert_segment(
+        MapSegment::new(
+            kstack.get_kstack_bottom().into(),
+            kstack.get_kstack_top().into(),
+            MapType::Framed,
+            MapPermission::W | MapPermission::R,
+        ),
+        None,
+    );
+
+    kstack
 }
 
 /// Abstraction of Process Identifier

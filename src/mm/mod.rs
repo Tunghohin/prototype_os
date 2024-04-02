@@ -8,5 +8,5 @@ pub mod page_table;
 pub fn init() {
     heap_allocator::init();
     page_table::init();
-    // KERNEL_SPACE.exclusive_access().activate();
+    KERNEL_SPACE.exclusive_access().activate();
 }

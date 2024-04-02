@@ -61,7 +61,7 @@ pub struct TaskContextRV64 {
 impl GenericContext<TaskContextRV64> for TaskContextRV64 {
     fn goto_trap_return(kstack_ptr: usize) -> TaskContextRV64 {
         let mut cx = TaskContextRV64::zero_init();
-        cx.ra = crate::hal::generic_trap::trap_return as usize;
+        cx.ra = crate::hal::riscv::trap::trap_return as usize;
         cx.sp = kstack_ptr;
         cx
     }
