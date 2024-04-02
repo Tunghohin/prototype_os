@@ -1,5 +1,7 @@
 use crate::hal::generic_trap::GenericTrap;
 use crate::hal::riscv::context::RegistersRV64;
+use crate::hal::riscv::paging::TokenSV39;
+use crate::task::cpu::current_task_token_ppn;
 use core::arch::global_asm;
 use riscv::register::{
     mtvec::TrapMode, satp, scause, sstatus, sstatus::set_spp, sstatus::Sstatus, stval, stvec,
@@ -97,6 +99,7 @@ impl GenericTrap<TrapContextRV64> for TrapContextRV64 {
 }
 
 #[no_mangle]
-pub extern "C" fn trap_return() {
-    panic!("Trap return!");
+pub extern "C" fn trap_return() -> ! {
+    let user_token = TokenSV39::new(current_task_token_ppn()).bits();
+    panic!("Not supposed to get there.");
 }

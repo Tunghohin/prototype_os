@@ -4,14 +4,17 @@ use riscv::register::satp;
 pub mod entry;
 
 pub struct TokenSV39 {
-    pub bits: usize,
+    bits: usize,
 }
 
 impl TokenSV39 {
-    fn new(ppn: usize) -> Self {
+    pub fn new(ppn: usize) -> Self {
         Self {
             bits: 8usize << 60 | ppn,
         }
+    }
+    pub fn bits(&self) -> usize {
+        self.bits
     }
 }
 

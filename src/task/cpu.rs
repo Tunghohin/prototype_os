@@ -19,15 +19,15 @@ impl Processor {
         }
     }
 
-    pub fn take_current_task(&mut self) -> Option<Arc<TaskControlBlock>> {
+    fn take_current_task(&mut self) -> Option<Arc<TaskControlBlock>> {
         self.current.take()
     }
 
-    pub fn current_task(&mut self) -> Option<Arc<TaskControlBlock>> {
+    fn current_task(&mut self) -> Option<Arc<TaskControlBlock>> {
         self.current.as_mut().cloned()
     }
 
-    pub fn current_task_token_ppn(&mut self) -> usize {
+    fn current_task_token_ppn(&mut self) -> usize {
         self.current_task()
             .expect("No current task!")
             .inner_exclusive_access()
@@ -39,4 +39,16 @@ impl Processor {
 
 lazy_static! {
     pub static ref PROCESSOR: UPSafeCell<Processor> = unsafe { UPSafeCell::new(Processor::new()) };
+}
+
+pub fn take_current_task() -> Option<Arc<TaskControlBlock>> {
+    PROCESSOR.exclusive_access().take_current_task()
+}
+
+pub fn current_task() -> Option<Arc<TaskControlBlock>> {
+    PROCESSOR.exclusive_access().current_task()
+}
+
+pub fn current_task_token_ppn() -> usize {
+    PROCESSOR.exclusive_access().current_task_token_ppn()
 }
