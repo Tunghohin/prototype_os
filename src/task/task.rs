@@ -6,7 +6,7 @@ use crate::sync::upsafecell::UPSafeCell;
 use crate::sysconfig::TRAP_CONTEXT_BASE;
 use crate::task::pid::{kstack_alloc, pid_alloc};
 use crate::task::pid::{KernelStack, PidHandle};
-use crate::{hal::*, print};
+use crate::{hal::*, print, println};
 use alloc::sync::{Arc, Weak};
 use alloc::vec::Vec;
 use core::cell::RefMut;

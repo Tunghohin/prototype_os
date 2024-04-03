@@ -35,13 +35,14 @@ fn clear_bss() {
         fn sbss();
         fn ebss();
     }
+    println!("{:x}, {:x}", sbss as usize, ebss as usize);
     unsafe {
         core::slice::from_raw_parts_mut(sbss as *mut u8, ebss as usize - sbss as usize).fill(0);
     }
 }
 
 fn kernel_init() {
-    //clear_bss();
+    clear_bss();
     hal::init();
     mm::init();
 }

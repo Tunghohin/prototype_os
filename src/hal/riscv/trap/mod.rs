@@ -1,10 +1,20 @@
-use crate::hal::riscv::context::RegistersRV64;
-use crate::hal::riscv::paging::TokenSV39;
+use crate::hal::{
+    context::RegistersRV64, generic_address::GenericPhysAddress, paging::TokenSV39,
+    syscall::syscall, PhysAddr, PhysPageNum, TrapContext, VirtAddr, VirtPageNum,
+};
+use crate::println;
+use crate::task::cpu;
 use crate::task::cpu::current_task_token_ppn;
 use crate::{hal::generic_trap::GenericTrap, sysconfig::TRAMPOLINE, sysconfig::TRAP_CONTEXT_BASE};
 use core::arch::global_asm;
 use riscv::register::{
-    mtvec::TrapMode, satp, scause, sstatus, sstatus::set_spp, sstatus::Sstatus, stval, stvec,
+    mtvec::TrapMode,
+    satp,
+    scause::{self, Exception, Interrupt, Trap},
+    sstatus,
+    sstatus::set_spp,
+    sstatus::Sstatus,
+    stval, stvec,
 };
 
 #[no_mangle]
@@ -39,6 +49,21 @@ pub extern "C" fn trap_handler() {
     let stval = stval::read();
 
     match scause.cause() {
+        Trap::Exception(Exception::UserEnvCall) => {
+            // jump to next instruction anyway
+            let cx: &mut TrapContext = PhysAddr::from(
+                cpu::current_task()
+                    .expect("No current task.")
+                    .inner_exclusive_access()
+                    .trap_cx_ppn,
+            )
+            .get_mut();
+            cx.sepc += 4;
+            // get system call return value
+            let result = syscall(cx.regs.a7, [cx.regs.a0, cx.regs.a1, cx.regs.a2]);
+            // cx is changed during sys_exec, so we have to call it again
+            cx.regs.a0 = result as usize;
+        }
         _ => {
             panic!(
                 "Unsupported: scause: {:?}, stval{:?}",
@@ -47,6 +72,7 @@ pub extern "C" fn trap_handler() {
             );
         }
     }
+    trap_return()
 }
 
 #[no_mangle]

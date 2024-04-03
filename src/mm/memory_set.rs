@@ -31,7 +31,7 @@ extern "C" {
     fn erodata();
     fn sdata();
     fn edata();
-    fn sbss();
+    fn bss_with_stack();
     fn ebss();
     fn ekernel();
     fn strampoline();
@@ -124,7 +124,7 @@ impl MemorySet {
         );
         memory_set.insert_segment(
             MapSegment::new(
-                (sbss as usize).into(),
+                (bss_with_stack as usize).into(),
                 (ebss as usize).into(),
                 MapType::Identical,
                 MapPermission::R | MapPermission::W,
@@ -147,7 +147,6 @@ impl MemorySet {
     /// return (MemorySet, uset_stack_top: va, entry_point: va)
     pub fn new_task(data: &[u8]) -> (MemorySet, usize, usize) {
         let mut memory_set = MemorySet::new();
-        println!("{:x}", memory_set.page_table.root_ppn.0);
         memory_set.map_trampoline();
 
         let elf = xmas_elf::ElfFile::new(data).expect("Invalid ELF data!");

@@ -5,6 +5,7 @@ use core::arch::asm;
 #[repr(C)]
 #[derive(Debug, Default, Clone)]
 pub struct RegistersRV64 {
+    pub zero: usize,
     pub ra: usize,
     pub sp: usize,
     pub gp: usize, // only valid for user traps

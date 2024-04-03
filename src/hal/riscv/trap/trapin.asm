@@ -43,10 +43,12 @@ __trapin:
     ld t1, 36*8(sp)
     ld sp, 35*8(sp)
     csrw satp, t0
+    sfence.vma
     jr t1
 
 __restore:
     csrw satp, a1
+    sfence.vma
     csrw sscratch, a0
     mv sp, a0
     ld t0, 32*8(sp)

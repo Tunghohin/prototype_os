@@ -36,18 +36,16 @@ SECTIONS
     . = ALIGN(4K);
     edata = .;
     
-    sbss = .;
+    bss_with_stack = .;
     .bss : {
         *(.bss.stack)
         sbss = .;
-        *(.bss .bss.*)
         *(.sbss .sbss.*)
+        *(.bss .bss.*)
     }
     . = ALIGN(4K);
     ebss = .;
     ekernel = .;
-    
-    . = ALIGN(4K);
     . = MEMORY_END;
 
     /DISCARD/ : {
