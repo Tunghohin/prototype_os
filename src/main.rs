@@ -35,6 +35,7 @@ fn clear_bss() {
         fn sbss();
         fn ebss();
     }
+    println!("{:x}, {:x}", sbss as usize, ebss as usize);
     unsafe {
         core::slice::from_raw_parts_mut(sbss as *mut u8, ebss as usize - sbss as usize).fill(0);
     }
@@ -50,11 +51,8 @@ fn kernel_init() {
 pub extern "C" fn rust_main() -> ! {
     kernel_init();
     bootup_logo();
-    crate::task::sche::add_task(crate::task::task::INITPROC.clone());
-    crate::task::sche::add_task(crate::task::task::INITPROC.clone());
-    crate::task::sche::add_task(crate::task::task::INITPROC.clone());
-    crate::task::sche::add_task(crate::task::task::INITPROC.clone());
-    println!("{}", crate::task::sche::TASK_QUEUE.exclusive_access().len());
+    task::init();
+    task::sche::run_task();
     shut_down();
 }
 

@@ -8,6 +8,7 @@ use crate::misc::range::StepByOne;
 use crate::mm::page_table::frame::frame_alloc;
 use crate::mm::page_table::frame::FrameTracker;
 use crate::mm::page_table::PageTable;
+use crate::println;
 use crate::sync::upsafecell::UPSafeCell;
 use crate::sysconfig::{MEMORY_END, PAGE_SIZE, TRAMPOLINE, TRAP_CONTEXT_BASE, USER_STACK_SIZE};
 use alloc::collections::BTreeMap;
@@ -30,7 +31,7 @@ extern "C" {
     fn erodata();
     fn sdata();
     fn edata();
-    fn sbss();
+    fn bss_with_stack();
     fn ebss();
     fn ekernel();
     fn strampoline();
@@ -54,6 +55,7 @@ impl MemorySet {
         }
     }
 
+    //
     pub fn insert_segment(&mut self, mut seg: MapSegment, data: Option<&[u8]>) {
         seg.map(&mut self.page_table);
         if let Some(data) = data {
@@ -122,7 +124,7 @@ impl MemorySet {
         );
         memory_set.insert_segment(
             MapSegment::new(
-                (sbss as usize).into(),
+                (bss_with_stack as usize).into(),
                 (ebss as usize).into(),
                 MapType::Identical,
                 MapPermission::R | MapPermission::W,
@@ -142,7 +144,7 @@ impl MemorySet {
         memory_set
     }
 
-    /// return (MemorySet, uset_stack_top, entry_point)
+    /// return (MemorySet, uset_stack_top: va, entry_point: va)
     pub fn new_task(data: &[u8]) -> (MemorySet, usize, usize) {
         let mut memory_set = MemorySet::new();
         memory_set.map_trampoline();
