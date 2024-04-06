@@ -24,6 +24,11 @@ pub fn init() {
     riscv::init();
 }
 
+pub fn enable_timer_interrupt() {
+    riscv::trap::enable_timer_interrupt();
+    riscv::syscall::set_next_trigger();
+}
+
 pub trait ArchMetaData: AddressMetaData + PagingMetaData + Sized {}
 
 pub trait GenericArch: ArchMetaData {

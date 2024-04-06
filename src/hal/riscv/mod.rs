@@ -1,4 +1,5 @@
 pub mod address;
+pub mod board;
 pub mod console;
 pub mod context;
 pub mod paging;

@@ -17,7 +17,7 @@ pub const TRAMPOLINE: usize = usize::MAX - PAGE_SIZE + 1;
 pub const TRAP_CONTEXT_BASE: usize = TRAMPOLINE - PAGE_SIZE;
 
 /// user app's stack size
-pub const USER_STACK_SIZE: usize = PAGE_SIZE;
+pub const USER_STACK_SIZE: usize = PAGE_SIZE * 2;
 
 /// kernel stack size
-pub const KERNEL_STACK_SIZE: usize = PAGE_SIZE;
+pub const KERNEL_STACK_SIZE: usize = PAGE_SIZE * 2;
