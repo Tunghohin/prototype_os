@@ -34,7 +34,10 @@ gdb:
 check:
 	cargo check
 
-
 .PHONY: qemu
 qemu: objcopy
 	${QEMU} ${QEMU_FLAG}
+
+.PHONY: clean
+clean:
+	@cargo clean

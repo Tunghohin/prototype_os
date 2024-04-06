@@ -46,6 +46,10 @@ pub fn fetch_task() -> Option<Arc<TaskControlBlock>> {
     TASK_QUEUE.exclusive_access().pop()
 }
 
+pub fn exit_current() {}
+
+pub fn run_next() {}
+
 pub fn run_task() {
     loop {
         let mut processor = PROCESSOR.exclusive_access();

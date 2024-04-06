@@ -1,7 +1,5 @@
 #![allow(dead_code)]
 
-use core::cmp;
-
 use crate::hal::*;
 use crate::misc::range::SimpleRange;
 use crate::misc::range::StepByOne;
@@ -14,6 +12,7 @@ use crate::sysconfig::{MEMORY_END, PAGE_SIZE, TRAMPOLINE, TRAP_CONTEXT_BASE, USE
 use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
+use core::cmp;
 use lazy_static::*;
 
 type VPNRange = SimpleRange<VirtPageNum>;
@@ -93,6 +92,10 @@ impl MemorySet {
 
     pub fn new_kernel() -> MemorySet {
         let mut memory_set = MemorySet::new();
+        println!(
+            "kernel pgt root ppn: {:#x}",
+            memory_set.page_table.root_ppn.0
+        );
         memory_set.map_trampoline();
 
         memory_set.insert_segment(
@@ -233,6 +236,31 @@ impl MemorySet {
 
     pub fn translate_pte(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
         self.page_table.translate_pte(vpn)
+    }
+
+    pub fn translate_bytes_buffer(&self, ptr: *const u8, len: usize) -> Vec<&'static mut [u8]> {
+        let mut buffers = Vec::new();
+        let mut current_va = VirtAddr::from(ptr as usize);
+        let end_va = VirtAddr::from(ptr as usize + len);
+        while current_va < end_va {
+            let mut current_vpn = current_va.pagenum_floor();
+            let current_ppn = self.translate_ppn(current_vpn);
+
+            current_vpn.step();
+
+            let current_end_va = cmp::min(VirtAddr::from(current_vpn), end_va);
+            if current_end_va.offset() == 0 {
+                buffers.push(&mut current_ppn.get_bytes_array_mut()[current_va.offset()..]);
+            } else {
+                buffers.push(
+                    &mut current_ppn.get_bytes_array_mut()
+                        [current_va.offset()..current_end_va.offset()],
+                );
+            }
+
+            current_va = current_end_va;
+        }
+        buffers
     }
 }
 

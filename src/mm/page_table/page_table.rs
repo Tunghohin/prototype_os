@@ -1,9 +1,12 @@
 #![allow(dead_code)]
 
 use crate::hal::*;
+use crate::misc::range::StepByOne;
 use crate::mm::page_table::frame::{frame_alloc, FrameTracker};
+use crate::task::cpu::current_task;
 use alloc::vec;
 use alloc::vec::Vec;
+use core::cmp;
 
 /// page table structure
 pub struct PageTable {

@@ -12,20 +12,20 @@ use lazy_static::*;
 
 /// bitmap for pid allocation, range from 0 to 1023
 struct PidBitMap {
-    inner: [usize; 16],
+    inner: [usize; 1024],
 }
 
 impl PidBitMap {
     /// Creates a new [`PidBitMap`].
     fn new() -> Self {
         PidBitMap {
-            inner: [usize::MAX; 16],
+            inner: [usize::MAX; 1024],
         }
     }
 
     /// Returns the request of this [`PidBitMap`].
     fn request(&mut self) -> Option<usize> {
-        for i in 0..16 {
+        for i in 0..1024 {
             if self.inner[i] == 0 {
                 // means all bit are allocated on this field
                 continue;
@@ -39,7 +39,7 @@ impl PidBitMap {
     }
 
     fn release(&mut self, pid: usize) {
-        assert!(pid < 1204, "range: 0 - 1023");
+        assert!(pid < 65536, "range: 0 - 1023");
         self.inner[pid / 64] |= 1 << (pid % 64);
     }
 }
@@ -114,7 +114,7 @@ impl KernelStack {
     }
 }
 
-pub fn kstack_alloc(pid: &PidHandle) -> KernelStack {
+pub fn kstack_alloc_and_map(pid: &PidHandle) -> KernelStack {
     let kstack = KernelStack { id: pid.0 };
     KERNEL_SPACE.exclusive_access().insert_segment(
         MapSegment::new(

@@ -101,7 +101,7 @@ impl GenericPhysPageNum for PhysPageNumSV39 {
 
     fn get_bytes_array(&self) -> &'static [u8] {
         let pa: PhysAddrSV39 = (*self).into();
-        unsafe { core::slice::from_raw_parts_mut(pa.0 as *mut u8, PAGE_SIZE) }
+        unsafe { core::slice::from_raw_parts(pa.0 as *mut u8, PAGE_SIZE) }
     }
 
     fn get_bytes_array_mut(&self) -> &'static mut [u8] {

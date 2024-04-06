@@ -17,6 +17,8 @@ use riscv::register::{
     stval, stvec,
 };
 
+global_asm!(include_str!("trapin.asm"));
+
 #[no_mangle]
 fn trap_in() -> ! {
     crate::println!("Trap in!");
@@ -35,16 +37,27 @@ pub fn set_trap_entry_user() {
     }
 }
 
-pub fn init() {
+pub fn enable_timer_interrupt() {
     unsafe {
-        stvec::write(trap_from_kernel as usize, TrapMode::Direct);
+        riscv::register::sie::set_stimer();
     }
+}
+
+pub fn disable_timer_interrupt() {
+    unsafe {
+        riscv::register::sie::clear_stimer();
+    }
+}
+
+pub fn init() {
+    set_trap_entry_kernel();
 }
 
 /// Trap handler
 #[no_mangle]
 pub extern "C" fn trap_handler() {
     set_trap_entry_kernel();
+    disable_timer_interrupt();
     let scause = scause::read();
     let stval = stval::read();
 
@@ -64,6 +77,10 @@ pub extern "C" fn trap_handler() {
             // cx is changed during sys_exec, so we have to call it again
             cx.regs.a0 = result as usize;
         }
+        Trap::Interrupt(Interrupt::SupervisorTimer) => {
+            println!("\n!\n");
+            crate::hal::syscall::set_next_trigger();
+        }
         _ => {
             panic!(
                 "Unsupported: scause: {:?}, stval{:?}",
@@ -76,6 +93,7 @@ pub extern "C" fn trap_handler() {
 }
 
 #[no_mangle]
+#[link_section = ".text.trapk"]
 pub extern "C" fn trap_from_kernel() -> ! {
     let scause = scause::read();
     let stval = stval::read();
@@ -125,7 +143,6 @@ impl GenericTrap<TrapContextRV64> for TrapContextRV64 {
     fn init() {}
 }
 
-global_asm!(include_str!("trapin.asm"));
 #[no_mangle]
 pub extern "C" fn trap_return() -> ! {
     set_trap_entry_user();
@@ -135,6 +152,8 @@ pub extern "C" fn trap_return() -> ! {
     }
     let user_token = TokenSV39::new(current_task_token_ppn()).bits();
     let restore_va = __restore as usize - __trapin as usize + TRAMPOLINE;
+    crate::hal::enable_timer_interrupt();
+    crate::hal::riscv::syscall::set_next_trigger();
     unsafe {
         core::arch::asm!(
             "fence.i",
