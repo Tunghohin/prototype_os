@@ -91,5 +91,5 @@ pub enum TaskStatus {
 
 lazy_static! {
     pub static ref INITPROC: Arc<TaskControlBlock> =
-        Arc::new(TaskControlBlock::new(get_app_data_by_name("initproc")));
+        Arc::new(TaskControlBlock::new(get_app_data_by_name("console_out")));
 }

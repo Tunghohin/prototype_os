@@ -91,36 +91,3 @@ impl PageTable {
         self.root_ppn
     }
 }
-
-pub fn translate_bytes_buffer(ptr: *const u8, len: usize) -> Vec<&'static mut [u8]> {
-    let page_table = PageTable {
-        root_ppn: current_task()
-            .expect("No current task.")
-            .inner_exclusive_access()
-            .memory_set
-            .get_root_ppn(),
-        frames: alloc::vec::Vec::new(),
-    };
-    let mut buffers = Vec::new();
-    let mut current_va = VirtAddr::from(ptr as usize);
-    let end_va = VirtAddr::from(ptr as usize + len);
-    while current_va < end_va {
-        let mut current_vpn = current_va.pagenum_floor();
-        let current_ppn = page_table.translate_ppn(current_vpn);
-
-        current_vpn.step();
-
-        let current_end_va = cmp::min(VirtAddr::from(current_vpn), end_va);
-        if current_end_va.offset() == 0 {
-            buffers.push(&mut current_ppn.get_bytes_array_mut()[current_va.offset()..]);
-        } else {
-            buffers.push(
-                &mut current_ppn.get_bytes_array_mut()
-                    [current_va.offset()..current_end_va.offset()],
-            );
-        }
-
-        current_va = current_end_va;
-    }
-    buffers
-}

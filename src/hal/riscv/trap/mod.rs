@@ -43,6 +43,12 @@ pub fn enable_timer_interrupt() {
     }
 }
 
+pub fn disable_timer_interrupt() {
+    unsafe {
+        riscv::register::sie::clear_stimer();
+    }
+}
+
 pub fn init() {
     set_trap_entry_kernel();
 }
@@ -51,6 +57,7 @@ pub fn init() {
 #[no_mangle]
 pub extern "C" fn trap_handler() {
     set_trap_entry_kernel();
+    disable_timer_interrupt();
     let scause = scause::read();
     let stval = stval::read();
 
@@ -71,6 +78,7 @@ pub extern "C" fn trap_handler() {
             cx.regs.a0 = result as usize;
         }
         Trap::Interrupt(Interrupt::SupervisorTimer) => {
+            println!("\n!\n");
             crate::hal::syscall::set_next_trigger();
         }
         _ => {
@@ -144,6 +152,8 @@ pub extern "C" fn trap_return() -> ! {
     }
     let user_token = TokenSV39::new(current_task_token_ppn()).bits();
     let restore_va = __restore as usize - __trapin as usize + TRAMPOLINE;
+    crate::hal::enable_timer_interrupt();
+    crate::hal::riscv::syscall::set_next_trigger();
     unsafe {
         core::arch::asm!(
             "fence.i",

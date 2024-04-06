@@ -250,23 +250,12 @@ impl MemorySet {
 
             let current_end_va = cmp::min(VirtAddr::from(current_vpn), end_va);
             if current_end_va.offset() == 0 {
-                println!("{:?}", unsafe {
-                    core::str::from_utf8_unchecked(
-                        &mut current_ppn.get_bytes_array_mut()[current_va.offset()..],
-                    )
-                });
-                // buffers.push(&mut current_ppn.get_bytes_array_mut()[current_va.offset()..]);
+                buffers.push(&mut current_ppn.get_bytes_array_mut()[current_va.offset()..]);
             } else {
-                println!("{:?}", unsafe {
-                    core::str::from_utf8_unchecked(
-                        &mut current_ppn.get_bytes_array_mut()
-                            [current_va.offset()..current_end_va.offset()],
-                    )
-                });
-                // buffers.push(
-                //     &mut current_ppn.get_bytes_array_mut()
-                //         [current_va.offset()..current_end_va.offset()],
-                // );
+                buffers.push(
+                    &mut current_ppn.get_bytes_array_mut()
+                        [current_va.offset()..current_end_va.offset()],
+                );
             }
 
             current_va = current_end_va;

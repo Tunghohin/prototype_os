@@ -1,6 +1,5 @@
-use crate::mm::page_table::page_table::translate_bytes_buffer;
+use crate::print;
 use crate::task::cpu::current_task;
-use crate::{print, println};
 
 const FD_STDIN: usize = 0;
 const FD_STDOUT: usize = 1;
@@ -8,11 +7,13 @@ const FD_STDOUT: usize = 1;
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     match fd {
         FD_STDOUT => {
-            let buffers = translate_bytes_buffer(buf, len);
+            let buffers = current_task()
+                .expect("No current task")
+                .inner_exclusive_access()
+                .memory_set
+                .translate_bytes_buffer(buf, len);
             for buffer in buffers {
-                unsafe {
-                    print!("{}", core::str::from_utf8_unchecked(buffer));
-                }
+                print!("{}", core::str::from_utf8(buffer).unwrap());
             }
             return len as isize;
         }
