@@ -2,6 +2,7 @@
 
 use crate::hal::*;
 use crate::sync::upsafecell::UPSafeCell;
+use crate::task::cpu;
 use crate::task::cpu::PROCESSOR;
 use crate::task::task::TaskControlBlock;
 use crate::task::task::TaskStatus;
@@ -46,10 +47,6 @@ pub fn fetch_task() -> Option<Arc<TaskControlBlock>> {
     TASK_QUEUE.exclusive_access().pop()
 }
 
-pub fn exit_current() {}
-
-pub fn run_next() {}
-
 pub fn run_task() {
     loop {
         let mut processor = PROCESSOR.exclusive_access();
@@ -66,4 +63,21 @@ pub fn run_task() {
             panic!("All task finished!");
         }
     }
+}
+
+pub fn suspend_current() {
+    let current = cpu::take_current_task().expect("No current task.");
+    let mut task_inner = task.inner_exclusive_access();
+    let task_cx_ptr = &mut task_inner.task_cx as *mut TaskContext;
+    task_inner.task_status = TaskStatus::Ready;
+    drop(task_inner);
+    add_task(current);
+}
+
+pub fn run_next() {}
+
+pub fn scheduler(task_cx: *mut TaskContext) {
+    let mut processor = PROCESSOR.exclusive_access();
+    let idle_cx_ptr = &processor.idle_task_cx as *mut TaskContext;
+    TaskContext::switch(task_cx, idle_cx_ptr);
 }
