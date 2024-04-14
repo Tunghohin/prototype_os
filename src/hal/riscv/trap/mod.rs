@@ -5,6 +5,7 @@ use crate::hal::{
 use crate::println;
 use crate::task::cpu;
 use crate::task::cpu::current_task_token_ppn;
+use crate::task::sche::suspend_current;
 use crate::{hal::generic_trap::GenericTrap, sysconfig::TRAMPOLINE, sysconfig::TRAP_CONTEXT_BASE};
 use core::arch::global_asm;
 use riscv::register::{
@@ -80,6 +81,7 @@ pub extern "C" fn trap_handler() {
         Trap::Interrupt(Interrupt::SupervisorTimer) => {
             println!("\n!\n");
             crate::hal::syscall::set_next_trigger();
+            suspend_current();
         }
         _ => {
             panic!(
